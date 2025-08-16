@@ -331,3 +331,9 @@ select:focus-visible {
     transform: scale(1);
   }
 }
+
+#musicPlayer {
+  width: 100% !important;
+  height: 250px !important; /* mostra barra de volume */
+  max-width: 600px;
+}

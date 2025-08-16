@@ -171,6 +171,9 @@ function tick() {
     clearTimerCache();
     endTimestamp = null;
 
+    // ✅ pare a música quando o timer termina
+    stopMusic();
+
     // Mostra a mensagem no lugar do "Timer em execução..."
     const statusEl = document.getElementById('timer-status');
     if (statusEl) {
@@ -344,7 +347,7 @@ function playYouTube(url) {
   if (musicPlayer) {
     musicPlayer.style.width = '100%';
     musicPlayer.style.height = '200px';
-    musicPlayer.style.maxWidth = '400px';
+    musicPlayer.style.maxWidth = '600px';
     musicPlayer.src = embedUrl;
   }
 
