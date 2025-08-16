@@ -24,6 +24,12 @@ const CACHE_KEYS = {
 
 // Funções de Cache
 function saveTimerState() {
+  // Só salvar se houver tempo definido
+  if (timeLeft <= 0 && !isRunning) {
+    clearTimerCache();
+    return;
+  }
+
   const state = {
     timeLeft,
     isRunning,
@@ -34,10 +40,9 @@ function saveTimerState() {
 
   try {
     localStorage.setItem(CACHE_KEYS.TIMER_STATE, JSON.stringify(state));
-    showCacheStatus('Timer salvo', 'success');
+    // Remover mensagem de cache para não poluir a interface
   } catch (error) {
     console.error('Erro ao salvar timer:', error);
-    showCacheStatus('Erro ao salvar', 'error');
   }
 }
 
@@ -48,15 +53,19 @@ function loadTimerState() {
 
     const state = JSON.parse(saved);
     const now = Date.now();
-    const elapsed = Math.floor((now - state.timestamp) / 1000);
 
-    // Se o timer estava rodando, calcular tempo decorrido
-    if (state.isRunning && state.timeLeft > 0) {
-      const newTimeLeft = Math.max(0, state.timeLeft - elapsed);
+    // Se o timer estava rodando, calcular tempo decorrido desde o startTime
+    if (state.isRunning && state.timeLeft > 0 && state.startTime) {
+      const totalElapsed = Math.floor((now - state.startTime) / 1000);
+      const originalTime = state.timeLeft + totalElapsed;
+      const newTimeLeft = Math.max(0, originalTime - totalElapsed);
+
       return {
         ...state,
         timeLeft: newTimeLeft,
-        isRunning: newTimeLeft > 0
+        isRunning: newTimeLeft > 0,
+        startTime: state.startTime,
+        pausedTime: 0
       };
     }
 
@@ -288,34 +297,65 @@ function showNotification(title, message) {
   alert(`${title}\n${message}`);
 }
 
-// Event listeners para controles do timer
-if (controls) {
-  controls.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const action = btn.dataset.action;
-    if (action === 'quick') return startTimer(Number(btn.dataset.min));
-    if (action === 'adjust') return adjustTimer(Number(btn.dataset.min));
-    if (action === 'start') return startCurrentTimer();
-    if (action === 'pause') return pauseTimer();
-    if (action === 'reset') return resetTimer();
-  });
+// Função para inicializar event listeners
+function initializeEventListeners() {
+  // Event listeners para controles do timer
+  const controls = document.querySelector('.timer-controls');
+  if (controls) {
+    controls.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      if (action === 'quick') return startTimer(Number(btn.dataset.min));
+      if (action === 'adjust') return adjustTimer(Number(btn.dataset.min));
+      if (action === 'start') return startCurrentTimer();
+      if (action === 'pause') return pauseTimer();
+      if (action === 'reset') return resetTimer();
+    });
+  }
+
+  // Event listeners para botões de ação individuais
+  const startBtn = document.querySelector('[data-action="start"]');
+  const pauseBtn = document.querySelector('[data-action="pause"]');
+  const resetBtn = document.querySelector('[data-action="reset"]');
+
+  if (startBtn) {
+    startBtn.addEventListener('click', startCurrentTimer);
+  }
+
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', pauseTimer);
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', resetTimer);
+  }
+
+  // Event listeners para música
+  const presetMusic = document.getElementById('presetMusic');
+  const playCustom = document.getElementById('playCustom');
+  const stopMusicBtn = document.getElementById('stopMusic');
+
+  if (presetMusic) {
+    presetMusic.addEventListener('change', () => {
+      const url = presetMusic.value;
+      if (url) playYouTube(url);
+    });
+  }
+
+  if (playCustom) {
+    playCustom.addEventListener('click', () => {
+      const url = document.getElementById('youtubeLink').value.trim();
+      if (url) playYouTube(url);
+    });
+  }
+
+  if (stopMusicBtn) {
+    stopMusicBtn.addEventListener('click', stopMusic);
+  }
 }
 
-// Event listeners para música
-if (presetMusic) {
-  presetMusic.addEventListener('change', () => {
-    const url = presetMusic.value;
-    if (url) playYouTube(url);
-  });
-}
 
-if (playCustom) {
-  playCustom.addEventListener('click', () => {
-    const url = youtubeLink.value.trim();
-    if (url) playYouTube(url);
-  });
-}
 
 // Função principal para reproduzir música
 function playYouTube(url) {
@@ -356,11 +396,7 @@ function stopMusic() {
   showMusicStatus('🔇 Música parada');
 }
 
-// Event listener para botão de parar
-const stopMusicBtn = document.getElementById('stopMusic');
-if (stopMusicBtn) {
-  stopMusicBtn.addEventListener('click', stopMusic);
-}
+
 
 // Função para mostrar status da música
 function showMusicStatus(message) {
@@ -525,6 +561,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof lucide !== 'undefined') {
       lucide.createIcons();
     }
+
+    // Inicializar event listeners
+    initializeEventListeners();
 
     // Carregar estado do timer do cache
     const savedState = loadTimerState();
