@@ -138,7 +138,7 @@ function updateDisplay() {
 
   const statusEl = document.getElementById('timer-status');
   if (statusEl) {
-    if (isRunning) statusEl.textContent = 'Timer em execução...';
+    if (isRunning) statusEl.textContent = '';
     else if (timeLeft > 0) statusEl.textContent = 'Timer pausado';
     else statusEl.textContent = 'Defina um tempo para começar';
   }
