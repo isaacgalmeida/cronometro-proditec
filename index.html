@@ -3,7 +3,73 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Cronômetro</title>
+
+    <title>
+      Cronômetro Online com Música (Grátis) — Foco para Estudos e Trabalho
+    </title>
+    <meta
+      name="description"
+      content="Cronômetro online gratuito com música de fundo. Ajuste minutos, pause, retome e personalize uma mensagem divertida enquanto o tempo roda. Ideal para estudos, trabalho e técnica Pomodoro."
+    />
+    <meta
+      name="keywords"
+      content="cronômetro online, timer online, pomodoro, estudar com música, produtividade, foco, cronometro com musica"
+    />
+    <link rel="canonical" href="https://seu-dominio.com/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="Cronômetro Online com Música (Grátis)" />
+    <meta
+      property="og:description"
+      content="Use o cronômetro online com música de fundo para manter o foco nos estudos e no trabalho."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://seu-dominio.com/" />
+    <meta property="og:image" content="https://seu-dominio.com/og-image.jpg" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Cronômetro Online com Música (Grátis)"
+    />
+    <meta
+      name="twitter:description"
+      content="Timer online gratuito com música ambiente e mensagens personalizáveis."
+    />
+    <meta name="twitter:image" content="https://seu-dominio.com/og-image.jpg" />
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- Favicon / Manifest (ajuste os caminhos conforme seu projeto) -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Estrutura de dados (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Cronômetro Online com Música",
+        "url": "https://seu-dominio.com/",
+        "applicationCategory": "Productivity",
+        "operatingSystem": "Web",
+        "description": "Cronômetro online gratuito com música de fundo, mensagens personalizadas e controles simples para focar em estudos e trabalho.",
+        "featureList": [
+          "Ajuste rápido de minutos",
+          "Pausar e retomar",
+          "Música de fundo via YouTube",
+          "Mensagem personalizada durante execução"
+        ]
+      }
+    </script>
+
+    <!-- Google AdSense (substitua pelo seu ID) -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
+
+    <!-- Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!-- Tailwind CSS (base do shadcn/ui) -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -68,10 +134,18 @@
       rel="stylesheet"
     />
   </head>
+
   <body
     class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900"
   >
-    <!-- Background dinâmico com fotos de educação -->
+    <a
+      href="#conteudo"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-yellow-400 focus:text-black focus:px-3 focus:py-1 focus:rounded"
+    >
+      Pular para o conteúdo
+    </a>
+
+    <!-- Background dinâmico -->
     <div
       class="background-slideshow fixed inset-0 z-0"
       id="backgroundSlideshow"
@@ -80,20 +154,31 @@
       class="fixed inset-0 bg-gradient-to-br from-blue-900/80 via-slate-900/70 to-blue-900/80 z-10"
     ></div>
 
-    <main
-      class="relative z-20 min-h-screen flex flex-col items-center justify-center p-4"
-    >
-      <!-- Header -->
-      <div class="w-full max-w-2xl mb-8">
-        <div class="text-center">
-          <h1
-            class="text-2xl md:text-3xl font-bold text-white bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent"
-          >
-            ⏱️ Cronômetro
-          </h1>
+    <!-- AD acima do timer -->
+    <div class="relative z-20 w-full mt-6">
+      <div class="max-w-4xl mx-auto px-4">
+        <div
+          id="ad-top"
+          class="w-full min-h-[90px] rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-white/60 text-sm"
+        >
+          <!-- Substitua pelo seu bloco de anúncio -->
+          <!--
+          <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+                data-ad-slot="1111111111"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          -->
         </div>
       </div>
+    </div>
 
+    <main
+      id="conteudo"
+      class="relative z-20 min-h-screen flex flex-col items-center justify-center p-4"
+    >
       <!-- Timer Card -->
       <div class="w-full max-w-2xl mb-8">
         <div
@@ -129,7 +214,6 @@
           <div
             class="timer-controls grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"
           >
-            <!-- Adjust buttons -->
             <button
               data-action="adjust"
               data-min="-1"
@@ -203,8 +287,9 @@
 
       <!-- Music Card -->
       <div class="w-full max-w-2xl">
-        <div
+        <section
           class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 shadow-2xl"
+          aria-label="Música de Fundo"
         >
           <div class="flex items-center gap-3 mb-6">
             <i data-lucide="music" class="w-6 h-6 text-white"></i>
@@ -222,7 +307,6 @@
                 <option value="" class="bg-slate-800 text-white">
                   🎵 Selecione uma música de fundo
                 </option>
-                <!-- Opções serão carregadas dinamicamente via JavaScript -->
               </select>
             </div>
 
@@ -264,8 +348,9 @@
                 frameborder="0"
                 allow="autoplay; encrypted-media"
                 class="rounded-lg shadow-lg"
-              >
-              </iframe>
+                loading="lazy"
+                title="Reprodutor do YouTube"
+              ></iframe>
             </div>
 
             <!-- Music Status -->
@@ -286,37 +371,91 @@
                 </h3>
               </div>
 
-              <!-- As opções serão inseridas aqui por JS -->
+              <!-- Opções criadas via JS -->
               <div id="messageOptions" class="msg-options"></div>
 
-              <!-- Lembrete do que será exibido -->
               <p class="text-white/60 text-xs mt-2">
                 Essa mensagem aparece abaixo do cronômetro enquanto o timer está
                 em execução.
               </p>
             </div>
           </div>
+        </section>
+      </div>
+
+      <!-- Bloco de texto para SEO -->
+      <section class="mt-10 w-full max-w-3xl text-center text-white/90">
+        <h2 class="text-lg font-semibold">
+          Por que usar nosso cronômetro online?
+        </h2>
+        <p class="mt-2">
+          Ideal para <strong>estudos</strong>, <strong>home office</strong> e
+          <strong>técnicas de produtividade</strong> como Pomodoro. Combine o
+          timer com <em>músicas relaxantes</em> e uma mensagem motivacional para
+          manter o foco.
+        </p>
+      </section>
+
+      <!-- AD abaixo do conteúdo principal -->
+      <div class="w-full max-w-4xl mt-10">
+        <div
+          id="ad-bottom"
+          class="w-full min-h-[90px] rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-white/60 text-sm"
+        >
+          <!-- Substitua pelo seu bloco de anúncio -->
+          <!--
+          <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+                data-ad-slot="2222222222"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          -->
+          Espaço para anúncio
         </div>
       </div>
     </main>
 
+    <footer class="relative z-20 w-full mt-16 mb-6">
+      <div class="max-w-4xl mx-auto px-4 text-center text-white/60 text-sm">
+        <p>
+          © <span id="year"></span> Cronômetro Online com Música — Gratuito e
+          sem cadastro.
+        </p>
+        <p class="mt-1">
+          Dica: use as teclas +/− para ajustar o tempo rapidamente (via botões).
+        </p>
+      </div>
+    </footer>
+
     <!-- Cache Status Indicator -->
     <div class="cache-indicator" id="cacheIndicator"></div>
 
+    <!-- Scripts principais -->
     <script src="app.js"></script>
 
-    <!-- Inicializar ícones do Lucide após carregamento -->
+    <!-- Inicializar ícones e pequenos helpers -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         if (typeof lucide !== "undefined") {
           lucide.createIcons();
         }
+        const y = document.getElementById("year");
+        if (y) y.textContent = new Date().getFullYear();
       });
+
       window.addEventListener("beforeunload", () => {
         if (typeof saveTimerState === "function") {
           saveTimerState();
         }
       });
+
+      // Noscript fallback para SEO/acessibilidade
+      document.body.insertAdjacentHTML(
+        "beforeend",
+        '<noscript><div style="color:#fff;text-align:center;margin:16px">Ative o JavaScript para usar o cronômetro.</div></noscript>'
+      );
     </script>
   </body>
 </html>
