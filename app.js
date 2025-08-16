@@ -1,10 +1,13 @@
-// app.js (versão refatorada para carregar músicas via music.json + fix do endTimestamp)
+// app.js (corrigido: não limpa storage no refresh + gate de persistência + endTimestamp + music.json)
 let countdown = null;
 let timeLeft = 0; // segundos
 let isRunning = false;
 let startTime = null;
 let pausedTime = 0;
 let endTimestamp = null; // alvo absoluto (ms desde epoch)
+
+// NOVO: só começamos a salvar no localStorage após a restauração inicial
+let canPersist = false;
 
 const timerEl = document.getElementById('timer');
 const controls = document.querySelector('.timer-controls');
@@ -26,10 +29,9 @@ const CACHE_KEYS = {
 
 // -------------------- Cache do Timer --------------------
 function saveTimerState() {
-  if ((timeLeft <= 0 && !isRunning) || (!endTimestamp && !isRunning)) {
-    clearTimerCache();
-    return;
-  }
+  // IMPORTANTE: não limpe o cache aqui quando estiver zerado; apenas não salve.
+  if (!canPersist) return; // ainda inicializando
+  if (timeLeft <= 0 && !isRunning) return; // não salva estado "vazio"
 
   const state = {
     timeLeft,
@@ -96,6 +98,7 @@ function loadTimerState() {
       };
     }
 
+    // pausado ou parado
     return {
       ...state,
       isRunning: false,
@@ -141,6 +144,7 @@ function updateDisplay() {
     else statusEl.textContent = 'Defina um tempo para começar';
   }
 
+  // Só persiste quando permitido
   saveTimerState();
 }
 
@@ -159,7 +163,7 @@ function tick() {
     clearInterval(countdown);
     isRunning = false;
     updateButtonStates('stopped');
-    clearTimerCache();
+    clearTimerCache();      // aqui sim limpamos explicitamente
     endTimestamp = null;
 
     showNotification('⏰ Tempo esgotado!', 'O timer chegou ao fim.');
@@ -233,7 +237,7 @@ function resetTimer() {
   updateDisplay();
   updateButtonStates('stopped');
   document.body.classList.remove('timer-running');
-  clearTimerCache();
+  clearTimerCache();       // limpar só aqui (e quando terminar)
 }
 
 function updateButtonStates(state) {
@@ -378,21 +382,17 @@ function extractVideoId(url) {
 }
 
 // -------------------- Carregar JSONs --------------------
-// Agora SEM fallback embutido: sempre lê do music.json
 async function loadBackgroundMusic() {
   try {
     const response = await fetch('music.json', { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
 
-    // Suporta dois formatos:
-    // 1) { "backgroundMusic": [ ... ] }
-    // 2) [ ... ]
     backgroundMusic = Array.isArray(data) ? data : (data.backgroundMusic || []);
     if (!Array.isArray(backgroundMusic)) backgroundMusic = [];
   } catch (error) {
     console.error('Erro ao carregar music.json:', error);
-    backgroundMusic = []; // estado vazio se falhar
+    backgroundMusic = [];
   }
 
   populateMusicSelect();
@@ -405,18 +405,14 @@ function populateMusicSelect() {
     return;
   }
 
-  // Limpa tudo menos a primeira opção
+  // limpa tudo menos o placeholder
   while (select.children.length > 1) {
     select.removeChild(select.lastChild);
   }
 
-  if (!backgroundMusic.length) {
-    // Mantém apenas o placeholder
-    return;
-  }
+  if (!backgroundMusic.length) return;
 
   backgroundMusic.forEach((music) => {
-    // tolerância a chaves diferentes
     const option = document.createElement('option');
     option.value = music.youtubeUrl || music.url || '';
     option.textContent = `${music.title || 'Sem título'}${music.duration ? ` (${music.duration})` : ''}`;
@@ -425,7 +421,7 @@ function populateMusicSelect() {
   });
 }
 
-// Slideshow de fundo (inalterado)
+// Slideshow (como antes)
 let currentSlide = 0;
 let slides = [];
 
@@ -480,7 +476,7 @@ function nextSlide() {
 }
 
 function startSlideshow() {
-  setInterval(nextSlide, 10000); // 10s
+  setInterval(nextSlide, 10000);
 }
 
 // -------------------- Boot --------------------
@@ -490,6 +486,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initializeEventListeners();
 
+    // restaura estado ANTES de permitir salvar
     const savedState = loadTimerState();
     if (savedState) {
       timeLeft = savedState.timeLeft;
@@ -497,8 +494,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       startTime = savedState.startTime;
       pausedTime = savedState.pausedTime;
       endTimestamp = savedState.endTimestamp || (isRunning ? Date.now() + timeLeft * 1000 : null);
-
-      updateDisplay();
 
       if (isRunning && timeLeft > 0) {
         countdown = setInterval(tick, 1000);
@@ -510,6 +505,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
+    // agora permitimos persistir
+    canPersist = true;
+    updateDisplay(); // faz um render já com persistência habilitada
+
     await Promise.all([loadBackgroundMusic(), loadBackgroundImages()]);
 
     if ('Notification' in window && Notification.permission === 'default') {
@@ -517,14 +516,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch (error) {
     console.error('Erro na inicialização:', error);
+    // mesmo em erro, habilite persistência para não travar salvamentos daqui pra frente
+    canPersist = true;
+    updateDisplay();
   }
 });
 
+// Fallback caso DOMContentLoaded já tenha passado
 if (document.readyState !== 'loading') {
   setTimeout(async () => {
     try {
       if (typeof lucide !== 'undefined') lucide.createIcons();
-
       initializeEventListeners();
 
       const savedState = loadTimerState();
@@ -535,8 +537,6 @@ if (document.readyState !== 'loading') {
         pausedTime = savedState.pausedTime;
         endTimestamp = savedState.endTimestamp || (isRunning ? Date.now() + timeLeft * 1000 : null);
 
-        updateDisplay();
-
         if (isRunning && timeLeft > 0) {
           countdown = setInterval(tick, 1000);
           updateButtonStates('running');
@@ -546,14 +546,20 @@ if (document.readyState !== 'loading') {
         }
       }
 
+      canPersist = true;
+      updateDisplay();
+
       await Promise.all([loadBackgroundMusic(), loadBackgroundImages()]);
     } catch (error) {
       console.error('Erro na inicialização:', error);
+      canPersist = true;
+      updateDisplay();
     }
   }, 100);
 }
 
 window.addEventListener('beforeunload', () => {
+  // agora não limpa o storage por engano
   saveTimerState();
 });
 
@@ -561,4 +567,5 @@ setInterval(() => {
   if (isRunning || timeLeft > 0) saveTimerState();
 }, 5000);
 
+// Render inicial (não irá salvar pois canPersist=false)
 updateDisplay();
