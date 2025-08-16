@@ -1,0 +1,52 @@
+{
+  "backgroundImages": [
+    {
+      "id": 1,
+      "url": "https://portal.ufcg.edu.br/images/2020.1/Fachada_UFCG_nova.jpg",
+      "alt": "Estudantes em sala de aula colaborativa",
+      "category": "classroom"
+    },
+    {
+      "id": 2,
+      "url": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&h=800&fit=crop&crop=center",
+      "alt": "Professor ensinando no quadro",
+      "category": "teaching"
+    },
+    {
+      "id": 3,
+      "url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=800&fit=crop&crop=center",
+      "alt": "Estudantes trabalhando em grupo",
+      "category": "collaboration"
+    },
+    {
+      "id": 4,
+      "url": "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&h=800&fit=crop&crop=center",
+      "alt": "Ambiente educacional moderno",
+      "category": "environment"
+    },
+    {
+      "id": 5,
+      "url": "https://portal.ufcg.edu.br/images/2020.2/biblioteca_central.jpg",
+      "alt": "Tecnologia na educação",
+      "category": "technology"
+    },
+    {
+      "id": 6,
+      "url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1200&h=800&fit=crop&crop=center",
+      "alt": "Biblioteca e estudos",
+      "category": "library"
+    },
+    {
+      "id": 7,
+      "url": "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=1200&h=800&fit=crop&crop=center",
+      "alt": "Apresentação educacional",
+      "category": "presentation"
+    },
+    {
+      "id": 8,
+      "url": "https://images.unsplash.com/photo-1581726690015-c9861fa5057f?w=1200&h=800&fit=crop&crop=center",
+      "alt": "Formação de professores",
+      "category": "training"
+    }
+  ]
+}

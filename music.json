@@ -1,0 +1,68 @@
+{
+  "backgroundMusic": [
+    {
+      "id": 1,
+      "title": "🎹 Piano Relaxante",
+      "description": "Música suave de piano para concentração",
+      "youtubeUrl": "https://www.youtube.com/watch?v=2OEL4P1Rz04",
+      "category": "piano",
+      "duration": "1 hora"
+    },
+    {
+      "id": 2,
+      "title": "🌊 Música Ambiente",
+      "description": "Sons ambientes relaxantes",
+      "youtubeUrl": "https://www.youtube.com/watch?v=lFcSrYw-ARY",
+      "category": "ambient",
+      "duration": "2 horas"
+    },
+    {
+      "id": 3,
+      "title": "🌿 Som da Natureza",
+      "description": "Sons naturais para relaxamento",
+      "youtubeUrl": "https://www.youtube.com/watch?v=1ZYbU82GVz4",
+      "category": "nature",
+      "duration": "3 horas"
+    },
+    {
+      "id": 4,
+      "title": "🎵 Música Clássica",
+      "description": "Peças clássicas suaves",
+      "youtubeUrl": "https://www.youtube.com/watch?v=jgpJVI3tDbY",
+      "category": "classical",
+      "duration": "1.5 horas"
+    },
+    {
+      "id": 5,
+      "title": "🌙 Música para Meditação",
+      "description": "Sons meditativos e tranquilos",
+      "youtubeUrl": "https://www.youtube.com/watch?v=M0r2cStOikw",
+      "category": "meditation",
+      "duration": "2 horas"
+    },
+    {
+      "id": 6,
+      "title": "☕ Café Jazz",
+      "description": "Jazz suave para ambiente de trabalho",
+      "youtubeUrl": "https://www.youtube.com/watch?v=Dx5qFachd3A",
+      "category": "jazz",
+      "duration": "1 hora"
+    },
+    {
+      "id": 7,
+      "title": "🌧️ Chuva Relaxante",
+      "description": "Som de chuva para concentração",
+      "youtubeUrl": "https://www.youtube.com/watch?v=mPZkdNFkNps",
+      "category": "rain",
+      "duration": "8 horas"
+    },
+    {
+      "id": 8,
+      "title": "🎼 Lo-Fi Study",
+      "description": "Música lo-fi para estudos",
+      "youtubeUrl": "https://www.youtube.com/watch?v=5qap5aO4i9A",
+      "category": "lofi",
+      "duration": "1 hora"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PRODITEC/UFCG — Timer</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Background dinâmico com fotos de educação -->
+    <div class="background-slideshow" id="backgroundSlideshow">
+      <!-- Slides serão carregados dinamicamente via JavaScript -->
+    </div>
+
+    <div class="overlay"></div>
+
+    <main class="container">
+      <header>
+        <div class="logo-section">
+          <div class="logo-icon">📚</div>
+          <div class="title-group">
+            <h1 class="title">PRODITEC/UFCG</h1>
+            <p class="subtitle">
+              Programa de apoio técnico e financeiro à formação continuada para
+              diretores escolares e técnicos das secretarias de educação.
+            </p>
+          </div>
+        </div>
+      </header>
+      <section class="timer-wrap">
+        <div id="timer" aria-live="polite">00:00</div>
+        <div class="timer-controls">
+          <button
+            data-action="adjust"
+            data-min="-1"
+            aria-label="Diminuir 1 minuto"
+          >
+            −1 min
+          </button>
+          <button
+            data-action="adjust"
+            data-min="1"
+            aria-label="Aumentar 1 minuto"
+          >
+            +1 min
+          </button>
+          <button data-action="quick" data-min="5">5 min</button>
+          <button data-action="quick" data-min="10">10 min</button>
+          <button data-action="pause">Pausar</button>
+          <button data-action="reset">Resetar</button>
+        </div>
+      </section>
+      <section class="music-controls">
+        <h2>🎵 Música de Fundo</h2>
+        <div class="music-grid">
+          <div class="music-row">
+            <label class="sr-only" for="presetMusic">Músicas suaves</label>
+            <select id="presetMusic" class="music-select">
+              <option value="">🎵 Selecione uma música de fundo</option>
+              <!-- Opções serão carregadas dinamicamente via JavaScript -->
+            </select>
+          </div>
+
+          <div class="music-row">
+            <input
+              type="url"
+              id="youtubeLink"
+              placeholder="🔗 Cole o link do YouTube aqui"
+              class="youtube-input"
+            />
+          </div>
+
+          <div class="music-controls-row">
+            <button id="playCustom" class="music-btn play-btn">
+              <span class="btn-icon">▶️</span>
+              <span class="btn-text">Reproduzir</span>
+            </button>
+            <button id="stopMusic" class="music-btn stop-btn">
+              <span class="btn-icon">⏹️</span>
+              <span class="btn-text">Parar</span>
+            </button>
+          </div>
+        </div>
+        <div class="music-player-container">
+          <iframe
+            id="musicPlayer"
+            width="0"
+            height="0"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+          ></iframe>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
