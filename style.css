@@ -1,41 +1,97 @@
+/* shadcn/ui CSS Variables */
 :root {
-  --primary-blue: #1e40af;
-  --secondary-blue: #3b82f6;
-  --accent-gold: #f59e0b;
-  --accent-gold-hover: #d97706;
-  --text-white: #ffffff;
-  --text-gray: #f3f4f6;
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --shadow-button: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 47.9 95.8% 53.1%;
+  --primary-foreground: 26 83.3% 14.1%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+  --radius: 0.75rem;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* Custom Animations */
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
+  }
 }
 
-html,
-body {
-  height: 100%;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    sans-serif;
-  overflow-x: hidden;
+@keyframes timer-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
 
-/* Background dinâmico */
-.background-slideshow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -2;
+/* Timer Running State */
+.timer-running #timer {
+  animation: timer-pulse 2s ease-in-out infinite;
+  transform: scale(1.05);
 }
 
-.slide {
+.timer-running .btn[data-action="start"] {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Timer Display Enhancement */
+#timer {
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+}
+
+/* Smaller minute buttons */
+.timer-controls button[data-action="adjust"],
+.timer-controls button[data-action="quick"] {
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  min-width: auto;
+}
+
+/* Responsive timer size adjustments */
+@media (max-width: 768px) {
+  #timer {
+    font-size: 4rem !important;
+  }
+
+  .timer-controls {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #timer {
+    font-size: 3rem !important;
+  }
+
+  .timer-controls button[data-action="adjust"],
+  .timer-controls button[data-action="quick"] {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+/* Background Slideshow */
+.background-slideshow .slide {
   position: absolute;
   top: 0;
   left: 0;
@@ -48,365 +104,138 @@ body {
   transition: opacity 2s ease-in-out;
 }
 
-.slide.active {
+.background-slideshow .slide.active {
   opacity: 1;
 }
 
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* Music Player Responsive */
+#musicPlayer.visible {
   width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    135deg,
-    rgba(30, 64, 175, 0.85) 0%,
-    rgba(59, 130, 246, 0.75) 50%,
-    rgba(30, 64, 175, 0.85) 100%
-  );
-  z-index: -1;
+  height: 80px;
+  max-width: 400px;
 }
 
-body {
-  color: var(--text-white);
-  text-align: center;
-  padding: clamp(16px, 4vw, 32px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 100vh;
-  position: relative;
+/* Custom Scrollbar */
+select option {
+  background-color: rgb(30 41 59);
+  color: white;
 }
 
-.container {
-  max-width: 1000px;
-  width: 100%;
-  backdrop-filter: blur(10px);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 24px;
-  padding: clamp(24px, 5vw, 48px);
-  box-shadow: var(--shadow-soft);
+/* Button States */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* Header melhorado */
-.logo-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(16px, 4vw, 24px);
-  margin-bottom: clamp(24px, 6vw, 40px);
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
-.logo-icon {
-  font-size: clamp(3rem, 8vw, 5rem);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-}
-
-.title-group {
-  text-align: left;
-}
-
-.title {
-  font-size: clamp(1.8rem, 6vw, 3.5rem);
-  font-weight: 800;
-  margin-bottom: 8px;
-  background: linear-gradient(135deg, var(--text-white), var(--accent-gold));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.1;
-}
-
-.subtitle {
-  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  line-height: 1.5;
-  opacity: 0.9;
-  font-weight: 400;
-}
-
-/* Timer melhorado */
-#timer {
-  font-size: clamp(3rem, 18vw, 8rem);
-  font-weight: 800;
-  margin: clamp(16px, 4vw, 24px) 0;
-  letter-spacing: 0.05em;
-  background: linear-gradient(135deg, var(--text-white), var(--accent-gold));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-}
-
-/* Controles do timer */
-.timer-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(8px, 2vw, 16px);
-  justify-content: center;
-  margin: clamp(20px, 5vw, 32px) 0;
-}
-
-.timer-controls button {
-  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-  font-weight: 600;
-  padding: clamp(12px, 3vw, 16px) clamp(16px, 4vw, 24px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  color: var(--text-white);
-  cursor: pointer;
-  box-shadow: var(--shadow-button);
-  transition: all 0.2s ease;
-  min-width: clamp(80px, 18vw, 120px);
-  white-space: nowrap;
-}
-
-/* Botões de tempo rápido (5min, 10min) mantêm destaque */
-.timer-controls button[data-action="quick"] {
-  background: linear-gradient(
-    135deg,
-    var(--accent-gold),
-    var(--accent-gold-hover)
-  );
-  color: #1f2937;
-  border: 2px solid var(--accent-gold);
-  font-weight: 700;
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
-}
-
-.timer-controls button[data-action="quick"]:hover {
-  background: linear-gradient(
-    135deg,
-    var(--accent-gold-hover),
-    var(--accent-gold)
-  );
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
-}
-
-/* Botões secundários (ajustar, pausar, resetar) com visual mais sutil */
-.timer-controls button[data-action="adjust"],
-.timer-controls button[data-action="pause"],
-.timer-controls button[data-action="reset"] {
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  color: var(--text-white);
-}
-
-.timer-controls button[data-action="adjust"]:hover,
-.timer-controls button[data-action="pause"]:hover,
-.timer-controls button[data-action="reset"]:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
-}
-
-.timer-controls button:active {
+.btn:active:not(:disabled) {
   transform: translateY(0);
 }
 
-/* Controles de música modernos */
-.music-controls {
-  margin-top: clamp(32px, 8vw, 48px);
-  width: 100%;
-}
-
-.music-controls h2 {
-  font-size: clamp(1.3rem, 4vw, 1.8rem);
-  font-weight: 700;
-  margin-bottom: clamp(20px, 5vw, 32px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.music-grid {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(16px, 4vw, 24px);
-  max-width: 100%;
-}
-
-.music-row {
-  width: 100%;
-}
-
-.music-select,
-.youtube-input {
-  width: 100%;
-  padding: clamp(12px, 3vw, 16px);
-  border: 2px solid var(--glass-border);
-  border-radius: 12px;
-  background: var(--glass-bg);
+/* Status Messages */
+.status-message {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  color: var(--text-white);
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-  font-weight: 500;
-  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.875rem;
+  text-align: center;
+  margin-top: 1rem;
 }
 
-.music-select:focus,
-.youtube-input:focus {
-  outline: none;
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-}
-
-.music-select option {
-  background: #1f2937;
-  color: var(--text-white);
-}
-
-.youtube-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Botões de música */
-.music-controls-row {
-  display: flex;
-  gap: clamp(12px, 3vw, 16px);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.music-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: clamp(12px, 3vw, 16px) clamp(20px, 5vw, 28px);
-  border: none;
-  border-radius: 12px;
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-  min-width: clamp(120px, 25vw, 160px);
-}
-
-.play-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-}
-
-.stop-btn {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
-}
-
-.music-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.btn-icon {
-  font-size: 1.1em;
-}
-
-/* Player de música */
-.music-player-container {
-  margin-top: 20px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-#musicPlayer {
-  border-radius: 12px;
-  max-width: 100%;
-  box-shadow: var(--shadow-soft);
-}
-
-#musicStatus {
-  font-size: clamp(0.8rem, 2vw, 0.9rem);
-  padding: 8px 16px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
-}
-
-/* Responsividade aprimorada */
+/* Responsive Adjustments */
 @media (max-width: 768px) {
-  .logo-section {
-    flex-direction: column;
-    text-align: center;
+  .timer-controls {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .title-group {
-    text-align: center;
-  }
-
-  .music-controls-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .music-btn {
-    justify-content: center;
-    min-width: auto;
+  #timer {
+    font-size: 3rem !important;
   }
 }
 
 @media (max-width: 480px) {
-  .container {
-    margin: 8px;
-    padding: clamp(16px, 4vw, 24px);
-    border-radius: 16px;
-  }
-
   .timer-controls {
-    gap: clamp(6px, 1.5vw, 10px);
+    grid-template-columns: 1fr;
   }
 
-  .timer-controls button {
-    min-width: clamp(70px, 15vw, 90px);
-    padding: clamp(10px, 2.5vw, 14px) clamp(12px, 3vw, 18px);
+  .flex.gap-3 {
+    flex-direction: column;
   }
 
-  .music-btn {
-    padding: clamp(10px, 2.5vw, 14px) clamp(16px, 4vw, 20px);
+  #timer {
+    font-size: 2.5rem !important;
   }
 }
 
-@media (max-width: 320px) {
-  body {
-    padding: 8px;
-  }
+/* Loading States */
+.loading {
+  position: relative;
+  overflow: hidden;
+}
 
-  .timer-controls button {
-    font-size: 0.8rem;
-    min-width: 65px;
+.loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    left: -100%;
   }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Focus States */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgb(234 179 8);
+  outline-offset: 2px;
+}
+
+/* Cache Status Indicator */
+.cache-indicator {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 50;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 0.75rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cache-indicator.show {
+  opacity: 1;
+}
+
+.cache-indicator.success {
+  background: rgba(34, 197, 94, 0.8);
+}
+
+.cache-indicator.error {
+  background: rgba(239, 68, 68, 0.8);
 }

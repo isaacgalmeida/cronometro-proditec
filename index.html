@@ -3,99 +3,292 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PRODITEC/UFCG — Timer</title>
+    <title>Cronômetro</title>
+
+    <!-- Tailwind CSS (base do shadcn/ui) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons (usado pelo shadcn/ui) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Configuração do Tailwind para shadcn/ui -->
+    <script>
+      tailwind.config = {
+        darkMode: ["class"],
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              input: "hsl(var(--input))",
+              ring: "hsl(var(--ring))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              primary: {
+                DEFAULT: "hsl(var(--primary))",
+                foreground: "hsl(var(--primary-foreground))",
+              },
+              secondary: {
+                DEFAULT: "hsl(var(--secondary))",
+                foreground: "hsl(var(--secondary-foreground))",
+              },
+              destructive: {
+                DEFAULT: "hsl(var(--destructive))",
+                foreground: "hsl(var(--destructive-foreground))",
+              },
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
+              accent: {
+                DEFAULT: "hsl(var(--accent))",
+                foreground: "hsl(var(--accent-foreground))",
+              },
+              popover: {
+                DEFAULT: "hsl(var(--popover))",
+                foreground: "hsl(var(--popover-foreground))",
+              },
+              card: {
+                DEFAULT: "hsl(var(--card))",
+                foreground: "hsl(var(--card-foreground))",
+              },
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+          },
+        },
+      };
+    </script>
+
     <link rel="stylesheet" href="style.css" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
   </head>
-  <body>
+  <body
+    class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900"
+  >
     <!-- Background dinâmico com fotos de educação -->
-    <div class="background-slideshow" id="backgroundSlideshow">
+    <div
+      class="background-slideshow fixed inset-0 z-0"
+      id="backgroundSlideshow"
+    >
       <!-- Slides serão carregados dinamicamente via JavaScript -->
     </div>
 
-    <div class="overlay"></div>
+    <div
+      class="fixed inset-0 bg-gradient-to-br from-blue-900/80 via-slate-900/70 to-blue-900/80 z-10"
+    ></div>
 
-    <main class="container">
-      <header>
-        <div class="logo-section">
-          <div class="logo-icon">📚</div>
-          <div class="title-group">
-            <h1 class="title">PRODITEC/UFCG</h1>
-            <p class="subtitle">
-              Programa de apoio técnico e financeiro à formação continuada para
-              diretores escolares e técnicos das secretarias de educação.
-            </p>
-          </div>
-        </div>
-      </header>
-      <section class="timer-wrap">
-        <div id="timer" aria-live="polite">00:00</div>
-        <div class="timer-controls">
-          <button
-            data-action="adjust"
-            data-min="-1"
-            aria-label="Diminuir 1 minuto"
+    <main
+      class="relative z-20 min-h-screen flex flex-col items-center justify-center p-4"
+    >
+      <!-- Header -->
+      <div class="w-full max-w-2xl mb-8">
+        <div class="text-center">
+          <h1
+            class="text-2xl md:text-3xl font-bold text-white bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent"
           >
-            −1 min
-          </button>
-          <button
-            data-action="adjust"
-            data-min="1"
-            aria-label="Aumentar 1 minuto"
+            ⏱️ Cronômetro
+          </h1>
+        </div>
+      </div>
+      <!-- Timer Card -->
+      <div class="w-full max-w-2xl mb-8">
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl"
+        >
+          <!-- Timer Display -->
+          <div class="text-center mb-8">
+            <div
+              id="timer"
+              aria-live="polite"
+              class="text-6xl md:text-8xl font-bold text-white mb-4 font-mono tracking-wider filter drop-shadow-lg bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent"
+            >
+              00:00
+            </div>
+            <div
+              id="timer-status"
+              class="text-white/70 text-sm font-medium"
+            ></div>
+          </div>
+
+          <!-- Timer Controls -->
+          <div
+            class="timer-controls grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"
           >
-            +1 min
-          </button>
-          <button data-action="quick" data-min="5">5 min</button>
-          <button data-action="quick" data-min="10">10 min</button>
-          <button data-action="pause">Pausar</button>
-          <button data-action="reset">Resetar</button>
-        </div>
-      </section>
-      <section class="music-controls">
-        <h2>🎵 Música de Fundo</h2>
-        <div class="music-grid">
-          <div class="music-row">
-            <label class="sr-only" for="presetMusic">Músicas suaves</label>
-            <select id="presetMusic" class="music-select">
-              <option value="">🎵 Selecione uma música de fundo</option>
-              <!-- Opções serão carregadas dinamicamente via JavaScript -->
-            </select>
+            <!-- Adjust buttons -->
+            <button
+              data-action="adjust"
+              data-min="-1"
+              aria-label="Diminuir 1 minuto"
+              class="btn btn-secondary flex items-center justify-center gap-1 px-2 py-2 rounded-md font-medium transition-all duration-200 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs"
+            >
+              <i data-lucide="minus" class="w-3 h-3"></i>
+              1min
+            </button>
+
+            <button
+              data-action="adjust"
+              data-min="1"
+              aria-label="Aumentar 1 minuto"
+              class="btn btn-secondary flex items-center justify-center gap-1 px-2 py-2 rounded-md font-medium transition-all duration-200 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs"
+            >
+              <i data-lucide="plus" class="w-3 h-3"></i>
+              1min
+            </button>
+
+            <button
+              data-action="quick"
+              data-min="5"
+              class="btn btn-primary flex items-center justify-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-200 bg-yellow-500 hover:bg-yellow-600 text-black text-xs font-semibold shadow-lg"
+            >
+              <i data-lucide="clock" class="w-3 h-3"></i>
+              5min
+            </button>
+
+            <button
+              data-action="quick"
+              data-min="10"
+              class="btn btn-primary flex items-center justify-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-200 bg-yellow-500 hover:bg-yellow-600 text-black text-xs font-semibold shadow-lg"
+            >
+              <i data-lucide="clock" class="w-3 h-3"></i>
+              10min
+            </button>
           </div>
 
-          <div class="music-row">
-            <input
-              type="url"
-              id="youtubeLink"
-              placeholder="🔗 Cole o link do YouTube aqui"
-              class="youtube-input"
-            />
+          <!-- Action buttons -->
+          <div class="flex gap-3 justify-center">
+            <button
+              data-action="start"
+              aria-label="Iniciar contador"
+              class="btn btn-success flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-green-600 hover:bg-green-700 text-white shadow-lg"
+            >
+              <i data-lucide="play" class="w-5 h-5"></i>
+              Iniciar
+            </button>
+
+            <button
+              data-action="pause"
+              aria-label="Pausar contador"
+              class="btn btn-warning flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-orange-500 hover:bg-orange-600 text-white shadow-lg hidden"
+            >
+              <i data-lucide="pause" class="w-5 h-5"></i>
+              Pausar
+            </button>
+
+            <button
+              data-action="reset"
+              aria-label="Resetar contador"
+              class="btn btn-destructive flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-red-600 hover:bg-red-700 text-white shadow-lg"
+            >
+              <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+              Resetar
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Music Card -->
+      <div class="w-full max-w-2xl">
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 shadow-2xl"
+        >
+          <div class="flex items-center gap-3 mb-6">
+            <i data-lucide="music" class="w-6 h-6 text-white"></i>
+            <h2 class="text-xl font-semibold text-white">Música de Fundo</h2>
           </div>
 
-          <div class="music-controls-row">
-            <button id="playCustom" class="music-btn play-btn">
-              <span class="btn-icon">▶️</span>
-              <span class="btn-text">Reproduzir</span>
-            </button>
-            <button id="stopMusic" class="music-btn stop-btn">
-              <span class="btn-icon">⏹️</span>
-              <span class="btn-text">Parar</span>
-            </button>
+          <div class="space-y-4">
+            <!-- Music Select -->
+            <div>
+              <label class="sr-only" for="presetMusic">Músicas suaves</label>
+              <select
+                id="presetMusic"
+                class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent backdrop-blur-sm"
+              >
+                <option value="" class="bg-slate-800 text-white">
+                  🎵 Selecione uma música de fundo
+                </option>
+                <!-- Opções serão carregadas dinamicamente via JavaScript -->
+              </select>
+            </div>
+
+            <!-- Custom YouTube Link -->
+            <div>
+              <input
+                type="url"
+                id="youtubeLink"
+                placeholder="🔗 Cole o link do YouTube aqui"
+                class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent backdrop-blur-sm"
+              />
+            </div>
+
+            <!-- Music Controls -->
+            <div class="flex gap-3 justify-center">
+              <button
+                id="playCustom"
+                class="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-green-600 hover:bg-green-700 text-white shadow-lg"
+              >
+                <i data-lucide="play" class="w-4 h-4"></i>
+                Reproduzir
+              </button>
+
+              <button
+                id="stopMusic"
+                class="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 bg-red-600 hover:bg-red-700 text-white shadow-lg"
+              >
+                <i data-lucide="square" class="w-4 h-4"></i>
+                Parar
+              </button>
+            </div>
+
+            <!-- Music Player -->
+            <div class="music-player-container mt-4 flex justify-center">
+              <iframe
+                id="musicPlayer"
+                width="0"
+                height="0"
+                frameborder="0"
+                allow="autoplay; encrypted-media"
+                class="rounded-lg shadow-lg"
+              >
+              </iframe>
+            </div>
+
+            <!-- Music Status -->
+            <div
+              id="musicStatus"
+              class="text-center text-white/70 text-sm"
+            ></div>
           </div>
         </div>
-        <div class="music-player-container">
-          <iframe
-            id="musicPlayer"
-            width="0"
-            height="0"
-            frameborder="0"
-            allow="autoplay; encrypted-media"
-          ></iframe>
-        </div>
-      </section>
+      </div>
     </main>
+
+    <!-- Cache Status Indicator -->
+    <div class="cache-indicator" id="cacheIndicator"></div>
+
     <script src="app.js"></script>
+
+    <!-- Inicializar ícones do Lucide após carregamento -->
+    <script>
+      // Garantir que os ícones sejam inicializados
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof lucide !== "undefined") {
+          lucide.createIcons();
+        }
+      });
+
+      // Salvar estado antes de sair da página
+      window.addEventListener("beforeunload", () => {
+        // O JavaScript já salva automaticamente, mas garantir uma última vez
+        if (typeof saveTimerState === "function") {
+          saveTimerState();
+        }
+      });
+    </script>
   </body>
 </html>
