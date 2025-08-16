@@ -330,7 +330,7 @@ function playYouTube(url) {
 
   if (musicPlayer) {
     musicPlayer.style.width = '100%';
-    musicPlayer.style.height = '80px';
+    musicPlayer.style.height = '200px';
     musicPlayer.style.maxWidth = '400px';
     musicPlayer.src = embedUrl;
   }
