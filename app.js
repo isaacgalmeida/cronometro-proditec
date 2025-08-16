@@ -1,8 +1,11 @@
+// app.js (versão corrigida)
 let countdown = null;
 let timeLeft = 0; // segundos
 let isRunning = false;
 let startTime = null;
 let pausedTime = 0;
+// NOVO: timestamp absoluto de término (em ms desde epoch)
+let endTimestamp = null;
 
 const timerEl = document.getElementById('timer');
 const controls = document.querySelector('.timer-controls');
@@ -25,7 +28,7 @@ const CACHE_KEYS = {
 // Funções de Cache
 function saveTimerState() {
   // Só salvar se houver tempo definido
-  if (timeLeft <= 0 && !isRunning) {
+  if ((timeLeft <= 0 && !isRunning) || (!endTimestamp && !isRunning)) {
     clearTimerCache();
     return;
   }
@@ -35,12 +38,13 @@ function saveTimerState() {
     isRunning,
     startTime,
     pausedTime,
+    // SALVA o alvo absoluto (crucial para restaurar corretamente)
+    endTimestamp,
     timestamp: Date.now()
   };
 
   try {
     localStorage.setItem(CACHE_KEYS.TIMER_STATE, JSON.stringify(state));
-    // Remover mensagem de cache para não poluir a interface
   } catch (error) {
     console.error('Erro ao salvar timer:', error);
   }
@@ -60,7 +64,26 @@ function loadTimerState() {
       return null;
     }
 
-    // Se o timer estava rodando, calcular tempo decorrido
+    // Preferimos restaurar com base no endTimestamp (se existir)
+    const hasEnd = typeof state.endTimestamp === 'number' && state.endTimestamp > 0;
+
+    if (state.isRunning && hasEnd) {
+      const computed = Math.max(0, Math.round((state.endTimestamp - now) / 1000));
+      if (computed <= 0) {
+        clearTimerCache();
+        return null;
+      }
+      return {
+        ...state,
+        timeLeft: computed,
+        isRunning: true,
+        // recalcula startTime aproximado
+        startTime: now - (state.timeLeft - computed) * 1000,
+        pausedTime: 0
+      };
+    }
+
+    // Fallback antigo (se não houver endTimestamp salvo)
     if (state.isRunning && state.timeLeft > 0) {
       const elapsedTime = Math.floor((now - state.timestamp) / 1000);
       const newTimeLeft = Math.max(0, state.timeLeft - elapsedTime);
@@ -75,14 +98,18 @@ function loadTimerState() {
         timeLeft: newTimeLeft,
         isRunning: true,
         startTime: now - elapsedTime * 1000,
-        pausedTime: 0
+        pausedTime: 0,
+        // cria um endTimestamp a partir do momento de carga
+        endTimestamp: now + newTimeLeft * 1000
       };
     }
 
-    // Se estava pausado ou parado, retornar estado original
+    // Se estava pausado ou parado
+    // garante consistência do endTimestamp
     return {
       ...state,
-      isRunning: false
+      isRunning: false,
+      endTimestamp: hasEnd ? state.endTimestamp : null
     };
   } catch (error) {
     console.error('Erro ao carregar timer:', error);
@@ -200,8 +227,17 @@ function updateDisplay() {
   saveTimerState();
 }
 
+// NOVO: sempre calcula com base no alvo
+function recomputeTimeLeftFromEnd() {
+  if (endTimestamp && isRunning) {
+    const now = Date.now();
+    timeLeft = Math.max(0, Math.round((endTimestamp - now) / 1000));
+  }
+}
+
 function tick() {
-  timeLeft = Math.max(0, timeLeft - 1);
+  // usa o endTimestamp para maior precisão/robustez
+  recomputeTimeLeftFromEnd();
   updateDisplay();
 
   if (timeLeft <= 0) {
@@ -209,6 +245,7 @@ function tick() {
     isRunning = false;
     updateButtonStates('stopped');
     clearTimerCache();
+    endTimestamp = null;
 
     // Notificação moderna
     showNotification('⏰ Tempo esgotado!', 'O timer chegou ao fim.');
@@ -221,6 +258,8 @@ function startTimer(min) {
   isRunning = true;
   startTime = Date.now();
   pausedTime = 0;
+  // define o alvo absoluto
+  endTimestamp = startTime + timeLeft * 1000;
 
   updateDisplay();
   countdown = setInterval(tick, 1000);
@@ -230,7 +269,19 @@ function startTimer(min) {
 }
 
 function adjustTimer(delta) {
-  timeLeft = Math.max(0, timeLeft + Math.round(delta * 60));
+  // delta em minutos
+  const deltaSecs = Math.round(delta * 60);
+
+  if (isRunning) {
+    // se estiver rodando, mova o alvo
+    if (!endTimestamp) endTimestamp = Date.now() + timeLeft * 1000;
+    endTimestamp = Math.max(Date.now(), endTimestamp + deltaSecs * 1000);
+    recomputeTimeLeftFromEnd();
+  } else {
+    // se estiver parado/pausado, só ajusta o timeLeft
+    timeLeft = Math.max(0, timeLeft + deltaSecs);
+  }
+
   updateDisplay();
 }
 
@@ -239,10 +290,13 @@ function startCurrentTimer() {
     clearInterval(countdown);
     isRunning = true;
     startTime = Date.now() - pausedTime;
+    // ao retomar, constrói um novo alvo a partir do restante
+    endTimestamp = Date.now() + timeLeft * 1000;
 
     countdown = setInterval(tick, 1000);
     updateButtonStates('running');
     document.body.classList.add('timer-running');
+    updateDisplay();
   } else {
     showNotification('⚠️ Tempo não definido', 'Defina um tempo primeiro usando os botões de minutos!');
   }
@@ -251,6 +305,9 @@ function startCurrentTimer() {
 function pauseTimer() {
   console.log('Pausando timer...');
   clearInterval(countdown);
+  // antes de pausar, garante que timeLeft reflete o alvo atual
+  recomputeTimeLeftFromEnd();
+
   isRunning = false;
   if (startTime) {
     pausedTime = Date.now() - startTime;
@@ -268,6 +325,7 @@ function resetTimer() {
   timeLeft = 0;
   startTime = null;
   pausedTime = 0;
+  endTimestamp = null;
 
   updateDisplay();
   updateButtonStates('stopped');
@@ -375,8 +433,6 @@ function initializeEventListeners() {
   }
 }
 
-
-
 // Função principal para reproduzir música
 function playYouTube(url) {
   const videoId = extractVideoId(url);
@@ -415,8 +471,6 @@ function stopMusic() {
   }
   showMusicStatus('🔇 Música parada');
 }
-
-
 
 // Função para mostrar status da música
 function showMusicStatus(message) {
@@ -592,6 +646,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       isRunning = savedState.isRunning;
       startTime = savedState.startTime;
       pausedTime = savedState.pausedTime;
+      endTimestamp = savedState.endTimestamp || (isRunning ? Date.now() + timeLeft * 1000 : null);
 
       updateDisplay();
 
@@ -640,6 +695,7 @@ if (document.readyState !== 'loading') {
         isRunning = savedState.isRunning;
         startTime = savedState.startTime;
         pausedTime = savedState.pausedTime;
+        endTimestamp = savedState.endTimestamp || (isRunning ? Date.now() + timeLeft * 1000 : null);
 
         updateDisplay();
 
