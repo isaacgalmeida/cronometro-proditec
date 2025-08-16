@@ -1,4 +1,4 @@
-// app.js (corrigido: não limpa storage no refresh + gate de persistência + endTimestamp + music.json)
+// app.js (persistência robusta com endTimestamp + gate canPersist + música via music.json)
 let countdown = null;
 let timeLeft = 0; // segundos
 let isRunning = false;
@@ -6,7 +6,7 @@ let startTime = null;
 let pausedTime = 0;
 let endTimestamp = null; // alvo absoluto (ms desde epoch)
 
-// NOVO: só começamos a salvar no localStorage após a restauração inicial
+// Só persistimos depois da restauração inicial
 let canPersist = false;
 
 const timerEl = document.getElementById('timer');
@@ -29,7 +29,6 @@ const CACHE_KEYS = {
 
 // -------------------- Cache do Timer --------------------
 function saveTimerState() {
-  // IMPORTANTE: não limpe o cache aqui quando estiver zerado; apenas não salve.
   if (!canPersist) return; // ainda inicializando
   if (timeLeft <= 0 && !isRunning) return; // não salva estado "vazio"
 
@@ -139,12 +138,18 @@ function updateDisplay() {
 
   const statusEl = document.getElementById('timer-status');
   if (statusEl) {
-    if (isRunning) statusEl.textContent = 'Timer em execução...';
+    if (isRunning) statusEl.textContent = '';
     else if (timeLeft > 0) statusEl.textContent = 'Timer pausado';
     else statusEl.textContent = 'Defina um tempo para começar';
   }
 
-  // Só persiste quando permitido
+  // Mostra/esconde o aviso divertido DURANTE execução
+  const runFun = document.getElementById('run-fun');
+  if (runFun) {
+    if (isRunning && timeLeft > 0) runFun.classList.remove('hidden');
+    else runFun.classList.add('hidden');
+  }
+
   saveTimerState();
 }
 
@@ -163,8 +168,14 @@ function tick() {
     clearInterval(countdown);
     isRunning = false;
     updateButtonStates('stopped');
-    clearTimerCache();      // aqui sim limpamos explicitamente
+    clearTimerCache();
     endTimestamp = null;
+
+    // Mostra a mensagem no lugar do "Timer em execução..."
+    const statusEl = document.getElementById('timer-status');
+    if (statusEl) {
+      statusEl.textContent = '⏰ Tempo esgotado!';
+    }
 
     showNotification('⏰ Tempo esgotado!', 'O timer chegou ao fim.');
   }
@@ -237,7 +248,7 @@ function resetTimer() {
   updateDisplay();
   updateButtonStates('stopped');
   document.body.classList.remove('timer-running');
-  clearTimerCache();       // limpar só aqui (e quando terminar)
+  clearTimerCache();
 }
 
 function updateButtonStates(state) {
@@ -266,11 +277,13 @@ function showNotification(title, message) {
       });
     } else if (Notification.permission !== 'denied') {
       Notification.requestPermission().then(permission => {
-        if (permission === 'granted') new Notification(title, { body: message });
+        if (permission === 'granted') {
+          new Notification(title, { body: message });
+        }
       });
     }
   }
-  alert(`${title}\n${message}`);
+  // ❌ removido o alert() para não interromper a tela
 }
 
 // -------------------- Eventos / Música --------------------
@@ -421,7 +434,7 @@ function populateMusicSelect() {
   });
 }
 
-// Slideshow (como antes)
+// Slideshow de fundo
 let currentSlide = 0;
 let slides = [];
 
@@ -470,6 +483,7 @@ function createSlideshow() {
 
 function nextSlide() {
   if (slides.length === 0) return;
+
   slides[currentSlide].classList.remove('active');
   currentSlide = (currentSlide + 1) % slides.length;
   slides[currentSlide].classList.add('active');
@@ -507,7 +521,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // agora permitimos persistir
     canPersist = true;
-    updateDisplay(); // faz um render já com persistência habilitada
+    updateDisplay(); // render com persistência habilitada
 
     await Promise.all([loadBackgroundMusic(), loadBackgroundImages()]);
 
@@ -516,7 +530,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch (error) {
     console.error('Erro na inicialização:', error);
-    // mesmo em erro, habilite persistência para não travar salvamentos daqui pra frente
     canPersist = true;
     updateDisplay();
   }
@@ -559,13 +572,13 @@ if (document.readyState !== 'loading') {
 }
 
 window.addEventListener('beforeunload', () => {
-  // agora não limpa o storage por engano
   saveTimerState();
 });
 
+// salva periodicamente
 setInterval(() => {
   if (isRunning || timeLeft > 0) saveTimerState();
 }, 5000);
 
-// Render inicial (não irá salvar pois canPersist=false)
+// render inicial (não persiste porque canPersist=false)
 updateDisplay();
