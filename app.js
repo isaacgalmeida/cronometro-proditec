@@ -1,4 +1,4 @@
-// app.js (persistência robusta com endTimestamp + gate canPersist + música via music.json + mensagens via messages.json)
+// app.js (persistência robusta com endTimestamp + gate canPersist + música via music.json + mensagens via messages.json + custom via localStorage + limpar custom)
 let countdown = null;
 let timeLeft = 0; // segundos
 let isRunning = false;
@@ -28,7 +28,8 @@ const CACHE_KEYS = {
   TIMER_STATE: 'cronometro_timer_state',
   TIMER_CONFIG: 'cronometro_timer_config',
   MUSIC_STATE: 'cronometro_music_state',
-  RUN_TEXT_SELECTED: 'cronometro_run_text' // nova chave para mensagem escolhida
+  RUN_TEXT_SELECTED: 'cronometro_run_text',
+  RUN_TEXT_CUSTOMS: 'cronometro_run_text_customs' // lista de mensagens personalizadas
 };
 
 // -------------------- Cache do Timer --------------------
@@ -175,10 +176,10 @@ function tick() {
     clearTimerCache();
     endTimestamp = null;
 
-    // ✅ pare a música quando o timer termina
+    // pare a música quando o timer termina
     stopMusic();
 
-    // Mostra a mensagem no lugar do "Timer em execução..."
+    // Mensagem no status
     const statusEl = document.getElementById('timer-status');
     if (statusEl) {
       statusEl.textContent = '⏰ Tempo esgotado!';
@@ -441,7 +442,7 @@ function populateMusicSelect() {
   });
 }
 
-// ===== Carregar mensagens (messages.json) e montar opções =====
+// ======== MENSAGENS (messages.json + personalizadas via localStorage) ========
 async function loadRunMessages() {
   try {
     const res = await fetch('messages.json', { cache: 'no-store' });
@@ -456,7 +457,7 @@ async function loadRunMessages() {
 
   renderRunMessageOptions();
   // aplica a seleção persistida (ou primeira opção)
-  applySelectedRunText(getSavedRunText() || runMessages[0] || 'Estamos no ritmo! 💨');
+  applySelectedRunText(getSavedRunText() || getAllMessages()[0] || 'Estamos no ritmo! 💨');
 }
 
 function renderRunMessageOptions() {
@@ -464,9 +465,11 @@ function renderRunMessageOptions() {
   if (!container) return;
   container.innerHTML = '';
 
+  const all = getAllMessages();
   const saved = getSavedRunText();
 
-  runMessages.forEach((msg) => {
+  // cria os pills para todas as mensagens (JSON + personalizadas)
+  all.forEach((msg) => {
     const pill = document.createElement('button');
     pill.type = 'button';
     pill.className = 'msg-option' + (saved === msg ? ' active' : '');
@@ -483,6 +486,26 @@ function renderRunMessageOptions() {
 
     container.appendChild(pill);
   });
+
+  // ➕ pill para adicionar mensagem personalizada
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'msg-option';
+  add.textContent = '➕ Personalizar';
+  add.title = 'Criar sua própria mensagem';
+  add.addEventListener('click', addCustomMessage);
+  container.appendChild(add);
+
+  // 🗑️ limpar personalizadas (só aparece se houver custom)
+  if (getCustomMessages().length > 0) {
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'msg-option';
+    clearBtn.textContent = '🗑️ Limpar personalizadas';
+    clearBtn.title = 'Remover todas as mensagens personalizadas';
+    clearBtn.addEventListener('click', clearCustomMessages);
+    container.appendChild(clearBtn);
+  }
 }
 
 function getSavedRunText() {
@@ -497,6 +520,65 @@ function saveRunText(txt) {
 function applySelectedRunText(txt) {
   const el = document.querySelector('#run-fun .run-text');
   if (el && txt) el.textContent = txt;
+}
+
+// ----- mensagens personalizadas (lista) -----
+function getCustomMessages() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEYS.RUN_TEXT_CUSTOMS);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+function saveCustomMessages(arr) {
+  try { localStorage.setItem(CACHE_KEYS.RUN_TEXT_CUSTOMS, JSON.stringify(arr)); } catch { }
+}
+function getAllMessages() {
+  // JSON + personalizadas (sem duplicar)
+  const base = runMessages.slice();
+  const customs = getCustomMessages();
+  const set = new Set(base.concat(customs).map(s => (s || '').trim()).filter(Boolean));
+  return Array.from(set);
+}
+function addCustomMessage() {
+  const txt = (prompt('Digite sua mensagem (máx. 120 caracteres):') || '').trim();
+  if (!txt) return;
+  const clean = txt.slice(0, 120);
+
+  const customs = getCustomMessages();
+  // evita duplicatas (case-insensitive)
+  if (!customs.find(m => m.toLowerCase() === clean.toLowerCase())) {
+    customs.push(clean);
+    saveCustomMessages(customs);
+  }
+
+  // seleciona imediatamente a nova mensagem
+  saveRunText(clean);
+  applySelectedRunText(clean);
+  renderRunMessageOptions();
+}
+function clearCustomMessages() {
+  const customs = getCustomMessages();
+  if (!customs.length) return;
+
+  const ok = confirm('Deseja apagar TODAS as mensagens personalizadas? Esta ação não pode ser desfeita.');
+  if (!ok) return;
+
+  // limpa todas as personalizadas
+  saveCustomMessages([]);
+
+  // se a selecionada era personalizada, escolher fallback
+  const selected = getSavedRunText();
+  const allNow = getAllMessages(); // agora só as do JSON
+  if (!allNow.includes(selected)) {
+    const fallback = allNow[0] || 'Estamos no ritmo! 💨';
+    saveRunText(fallback);
+    applySelectedRunText(fallback);
+  }
+
+  renderRunMessageOptions();
 }
 
 // Slideshow de fundo
@@ -591,7 +673,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([
       loadBackgroundMusic(),
       loadBackgroundImages(),
-      loadRunMessages() // ✅ carrega as mensagens
+      loadRunMessages() // carrega as mensagens
     ]);
 
     if ('Notification' in window && Notification.permission === 'default') {
@@ -634,7 +716,7 @@ if (document.readyState !== 'loading') {
       await Promise.all([
         loadBackgroundMusic(),
         loadBackgroundImages(),
-        loadRunMessages() // ✅ carrega as mensagens também no fallback
+        loadRunMessages() // também no fallback
       ]);
     } catch (error) {
       console.error('Erro na inicialização:', error);
