@@ -258,7 +258,7 @@ select:focus-visible {
   gap: 0.6rem;
   padding: 0.7rem 1rem;
   border-radius: 9999px;
-  background: rgba(15, 180, 89, 0.85); /* fundo destacado */
+  background: rgba(226, 85, 3, 0.85); /* fundo destacado */
   border: 2px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 0 15px rgba(255, 200, 0, 0.6);
   backdrop-filter: blur(6px);
@@ -273,7 +273,7 @@ select:focus-visible {
 }
 
 .run-text {
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.3px;
 }
 

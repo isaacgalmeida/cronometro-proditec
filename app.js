@@ -171,6 +171,12 @@ function tick() {
     clearTimerCache();
     endTimestamp = null;
 
+    // Mostra a mensagem no lugar do "Timer em execução..."
+    const statusEl = document.getElementById('timer-status');
+    if (statusEl) {
+      statusEl.textContent = '⏰ Tempo esgotado!';
+    }
+
     showNotification('⏰ Tempo esgotado!', 'O timer chegou ao fim.');
   }
 }
@@ -271,11 +277,13 @@ function showNotification(title, message) {
       });
     } else if (Notification.permission !== 'denied') {
       Notification.requestPermission().then(permission => {
-        if (permission === 'granted') new Notification(title, { body: message });
+        if (permission === 'granted') {
+          new Notification(title, { body: message });
+        }
       });
     }
   }
-  alert(`${title}\n${message}`);
+  // ❌ removido o alert() para não interromper a tela
 }
 
 // -------------------- Eventos / Música --------------------
