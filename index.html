@@ -75,10 +75,7 @@
     <div
       class="background-slideshow fixed inset-0 z-0"
       id="backgroundSlideshow"
-    >
-      <!-- Slides serão carregados dinamicamente via JavaScript -->
-    </div>
-
+    ></div>
     <div
       class="fixed inset-0 bg-gradient-to-br from-blue-900/80 via-slate-900/70 to-blue-900/80 z-10"
     ></div>
@@ -96,6 +93,7 @@
           </h1>
         </div>
       </div>
+
       <!-- Timer Card -->
       <div class="w-full max-w-2xl mb-8">
         <div
@@ -106,7 +104,7 @@
             <div
               id="timer"
               aria-live="polite"
-              class="text-8xl md:text-9xl font-bold text-white mb-4 font-mono tracking-wider filter drop-shadow-lg bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent"
+              class="text-9xl md:text-9xl font-bold text-white mb-4 font-mono tracking-wider filter drop-shadow-lg bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent"
             >
               00:00
             </div>
@@ -114,6 +112,17 @@
               id="timer-status"
               class="text-white/70 text-sm font-medium"
             ></div>
+
+            <!-- Aviso divertido DURANTE a execução -->
+            <div id="run-fun" class="run-fun hidden" aria-live="polite">
+              <div class="run-bubble">
+                <span class="run-emoji" aria-hidden="true">📢</span>
+                <span class="run-text">Voltamos já! ⏳</span>
+              </div>
+              <div class="run-loader" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
           </div>
 
           <!-- Timer Controls -->
@@ -191,6 +200,7 @@
           </div>
         </div>
       </div>
+
       <!-- Music Card -->
       <div class="w-full max-w-2xl">
         <div
@@ -275,16 +285,12 @@
 
     <!-- Inicializar ícones do Lucide após carregamento -->
     <script>
-      // Garantir que os ícones sejam inicializados
       document.addEventListener("DOMContentLoaded", () => {
         if (typeof lucide !== "undefined") {
           lucide.createIcons();
         }
       });
-
-      // Salvar estado antes de sair da página
       window.addEventListener("beforeunload", () => {
-        // O JavaScript já salva automaticamente, mas garantir uma última vez
         if (typeof saveTimerState === "function") {
           saveTimerState();
         }
