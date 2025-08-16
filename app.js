@@ -1,4 +1,4 @@
-// app.js (persistência robusta com endTimestamp + gate canPersist + música via music.json)
+// app.js (persistência robusta com endTimestamp + gate canPersist + música via music.json + mensagens via messages.json)
 let countdown = null;
 let timeLeft = 0; // segundos
 let isRunning = false;
@@ -20,11 +20,15 @@ const musicPlayer = document.getElementById('musicPlayer');
 let backgroundMusic = [];
 let backgroundImages = [];
 
+// Mensagens personalizáveis (run-text)
+let runMessages = [];
+
 // Sistema de Cache
 const CACHE_KEYS = {
   TIMER_STATE: 'cronometro_timer_state',
   TIMER_CONFIG: 'cronometro_timer_config',
-  MUSIC_STATE: 'cronometro_music_state'
+  MUSIC_STATE: 'cronometro_music_state',
+  RUN_TEXT_SELECTED: 'cronometro_run_text' // nova chave para mensagem escolhida
 };
 
 // -------------------- Cache do Timer --------------------
@@ -286,7 +290,7 @@ function showNotification(title, message) {
       });
     }
   }
-  // ❌ removido o alert() para não interromper a tela
+  // sem alert() para não interromper a tela
 }
 
 // -------------------- Eventos / Música --------------------
@@ -346,7 +350,7 @@ function playYouTube(url) {
 
   if (musicPlayer) {
     musicPlayer.style.width = '100%';
-    musicPlayer.style.height = '200px';
+    musicPlayer.style.height = '200px'; // altura maior para mostrar controles (incluindo volume)
     musicPlayer.style.maxWidth = '600px';
     musicPlayer.src = embedUrl;
   }
@@ -435,6 +439,64 @@ function populateMusicSelect() {
     option.dataset.category = music.category || '';
     select.appendChild(option);
   });
+}
+
+// ===== Carregar mensagens (messages.json) e montar opções =====
+async function loadRunMessages() {
+  try {
+    const res = await fetch('messages.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    runMessages = Array.isArray(data) ? data : (data.messages || []);
+    if (!Array.isArray(runMessages)) runMessages = [];
+  } catch (e) {
+    console.error('Erro ao carregar messages.json:', e);
+    runMessages = [];
+  }
+
+  renderRunMessageOptions();
+  // aplica a seleção persistida (ou primeira opção)
+  applySelectedRunText(getSavedRunText() || runMessages[0] || 'Estamos no ritmo! 💨');
+}
+
+function renderRunMessageOptions() {
+  const container = document.getElementById('messageOptions');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const saved = getSavedRunText();
+
+  runMessages.forEach((msg) => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'msg-option' + (saved === msg ? ' active' : '');
+    pill.textContent = msg;
+
+    pill.addEventListener('click', () => {
+      // marca visualmente
+      [...container.children].forEach(c => c.classList.remove('active'));
+      pill.classList.add('active');
+      // salva e aplica
+      saveRunText(msg);
+      applySelectedRunText(msg);
+    });
+
+    container.appendChild(pill);
+  });
+}
+
+function getSavedRunText() {
+  try { return localStorage.getItem(CACHE_KEYS.RUN_TEXT_SELECTED) || ''; }
+  catch { return ''; }
+}
+
+function saveRunText(txt) {
+  try { localStorage.setItem(CACHE_KEYS.RUN_TEXT_SELECTED, txt); } catch { }
+}
+
+function applySelectedRunText(txt) {
+  const el = document.querySelector('#run-fun .run-text');
+  if (el && txt) el.textContent = txt;
 }
 
 // Slideshow de fundo
@@ -526,7 +588,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     canPersist = true;
     updateDisplay(); // render com persistência habilitada
 
-    await Promise.all([loadBackgroundMusic(), loadBackgroundImages()]);
+    await Promise.all([
+      loadBackgroundMusic(),
+      loadBackgroundImages(),
+      loadRunMessages() // ✅ carrega as mensagens
+    ]);
 
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
@@ -565,7 +631,11 @@ if (document.readyState !== 'loading') {
       canPersist = true;
       updateDisplay();
 
-      await Promise.all([loadBackgroundMusic(), loadBackgroundImages()]);
+      await Promise.all([
+        loadBackgroundMusic(),
+        loadBackgroundImages(),
+        loadRunMessages() // ✅ carrega as mensagens também no fallback
+      ]);
     } catch (error) {
       console.error('Erro na inicialização:', error);
       canPersist = true;

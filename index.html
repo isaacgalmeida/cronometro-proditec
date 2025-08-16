@@ -273,6 +273,28 @@
               id="musicStatus"
               class="text-center text-white/70 text-sm"
             ></div>
+
+            <!-- Run Text – Seleção de mensagem (carregada via JSON) -->
+            <div class="mt-6">
+              <div class="flex items-center gap-2 mb-2">
+                <i
+                  data-lucide="message-circle"
+                  class="w-5 h-5 text-white/90"
+                ></i>
+                <h3 class="text-white font-semibold">
+                  Mensagem durante a execução
+                </h3>
+              </div>
+
+              <!-- As opções serão inseridas aqui por JS -->
+              <div id="messageOptions" class="msg-options"></div>
+
+              <!-- Lembrete do que será exibido -->
+              <p class="text-white/60 text-xs mt-2">
+                Essa mensagem aparece abaixo do cronômetro enquanto o timer está
+                em execução.
+              </p>
+            </div>
           </div>
         </div>
       </div>
