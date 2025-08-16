@@ -54,24 +54,39 @@ function loadTimerState() {
     const state = JSON.parse(saved);
     const now = Date.now();
 
-    // Se o timer estava rodando, calcular tempo decorrido desde o startTime
-    if (state.isRunning && state.timeLeft > 0 && state.startTime) {
-      const totalElapsed = Math.floor((now - state.startTime) / 1000);
-      const originalTime = state.timeLeft + totalElapsed;
-      const newTimeLeft = Math.max(0, originalTime - totalElapsed);
+    // Verificar se o estado é válido
+    if (!state.timestamp || typeof state.timeLeft !== 'number') {
+      clearTimerCache();
+      return null;
+    }
+
+    // Se o timer estava rodando, calcular tempo decorrido
+    if (state.isRunning && state.timeLeft > 0) {
+      const elapsedTime = Math.floor((now - state.timestamp) / 1000);
+      const newTimeLeft = Math.max(0, state.timeLeft - elapsedTime);
+
+      if (newTimeLeft <= 0) {
+        clearTimerCache();
+        return null;
+      }
 
       return {
         ...state,
         timeLeft: newTimeLeft,
-        isRunning: newTimeLeft > 0,
-        startTime: state.startTime,
+        isRunning: true,
+        startTime: now - elapsedTime * 1000,
         pausedTime: 0
       };
     }
 
-    return state;
+    // Se estava pausado ou parado, retornar estado original
+    return {
+      ...state,
+      isRunning: false
+    };
   } catch (error) {
     console.error('Erro ao carregar timer:', error);
+    clearTimerCache();
     return null;
   }
 }
@@ -234,15 +249,20 @@ function startCurrentTimer() {
 }
 
 function pauseTimer() {
+  console.log('Pausando timer...');
   clearInterval(countdown);
   isRunning = false;
-  pausedTime = Date.now() - startTime;
+  if (startTime) {
+    pausedTime = Date.now() - startTime;
+  }
 
   updateButtonStates('paused');
   document.body.classList.remove('timer-running');
+  updateDisplay();
 }
 
 function resetTimer() {
+  console.log('Resetando timer...');
   clearInterval(countdown);
   isRunning = false;
   timeLeft = 0;
@@ -260,18 +280,18 @@ function updateButtonStates(state) {
   const startBtn = document.querySelector('[data-action="start"]');
   const pauseBtn = document.querySelector('[data-action="pause"]');
 
-  if (startBtn) {
+  console.log('Atualizando botões para estado:', state);
+
+  if (startBtn && pauseBtn) {
     if (state === 'running') {
       startBtn.classList.add('hidden');
-      if (pauseBtn) {
-        pauseBtn.classList.remove('hidden');
-      }
+      pauseBtn.classList.remove('hidden');
     } else {
       startBtn.classList.remove('hidden');
-      if (pauseBtn) {
-        pauseBtn.classList.add('hidden');
-      }
+      pauseBtn.classList.add('hidden');
     }
+  } else {
+    console.error('Botões não encontrados:', { startBtn: !!startBtn, pauseBtn: !!pauseBtn });
   }
 }
 
@@ -610,16 +630,25 @@ if (document.readyState !== 'loading') {
         lucide.createIcons();
       }
 
+      // Inicializar event listeners
+      initializeEventListeners();
+
       // Carregar estado do cache
       const savedState = loadTimerState();
       if (savedState) {
         timeLeft = savedState.timeLeft;
         isRunning = savedState.isRunning;
+        startTime = savedState.startTime;
+        pausedTime = savedState.pausedTime;
+
         updateDisplay();
 
         if (isRunning && timeLeft > 0) {
           countdown = setInterval(tick, 1000);
           updateButtonStates('running');
+          document.body.classList.add('timer-running');
+        } else {
+          updateButtonStates('stopped');
         }
       }
 
@@ -632,6 +661,18 @@ if (document.readyState !== 'loading') {
     }
   }, 100);
 }
+
+// Salvar estado quando a página for fechada ou recarregada
+window.addEventListener('beforeunload', () => {
+  saveTimerState();
+});
+
+// Salvar estado periodicamente (a cada 5 segundos)
+setInterval(() => {
+  if (isRunning || timeLeft > 0) {
+    saveTimerState();
+  }
+}, 5000);
 
 // Inicializar display do timer
 updateDisplay();
