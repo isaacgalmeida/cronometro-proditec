@@ -341,43 +341,6 @@ function initializeEventListeners() {
   }
 }
 
-function initializeEventListeners() {
-  const controls = document.querySelector('.timer-controls');
-  if (controls) {
-    controls.addEventListener('click', (e) => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-      const action = btn.dataset.action;
-      if (action === 'quick') return startTimer(Number(btn.dataset.min));
-      if (action === 'adjust') return adjustTimer(Number(btn.dataset.min));
-      if (action === 'start') return startCurrentTimer();
-      if (action === 'pause') return pauseTimer();
-      if (action === 'reset') return resetTimer();
-    });
-  }
-
-  const setCustomTimeBtn = document.getElementById('setCustomTime');
-  if (setCustomTimeBtn) {
-    setCustomTimeBtn.addEventListener('click', () => {
-      const customTime = parseInt(document.getElementById('customTimeInput').value);
-      if (!isNaN(customTime) && customTime > 0) {
-        startTimer(customTime);
-      } else {
-        alert('Por favor, insira um valor válido para o tempo.');
-      }
-    });
-  }
-
-  const startBtn = document.querySelector('[data-action="start"]');
-  const pauseBtn = document.querySelector('[data-action="pause"]');
-  const resetBtn = document.querySelector('[data-action="reset"]');
-
-  if (startBtn) startBtn.addEventListener('click', startCurrentTimer);
-  if (pauseBtn) pauseBtn.addEventListener('click', pauseTimer);
-  if (resetBtn) resetBtn.addEventListener('click', resetTimer);
-}
-
-
 function playYouTube(url) {
   const videoId = extractVideoId(url);
   if (!videoId) {
