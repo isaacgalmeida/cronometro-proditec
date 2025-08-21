@@ -238,6 +238,24 @@
             </button>
           </div>
 
+          <!-- Campo de Entrada para Tempo Personalizado -->
+<div class="w-full flex items-center justify-center gap-2">
+  <input 
+    type="number" 
+    id="customTimeInput" 
+    class="w-1/2 px-4 py-2 rounded-md text-white bg-slate-800 border border-white/20 focus:outline-none focus:ring-2 focus:ring-yellow-500" 
+    placeholder="Digite o tempo (min)"
+    min="1"
+    aria-label="Tempo personalizado"
+  />
+  <button
+    id="setCustomTime"
+    class="btn btn-primary px-3 py-2 rounded-md text-black bg-yellow-500 hover:bg-yellow-600"
+  >
+    Definir Tempo
+  </button>
+</div>
+
           <!-- Action buttons -->
           <div class="flex gap-3 justify-center">
             <button

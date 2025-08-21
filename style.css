@@ -366,3 +366,30 @@ select:focus-visible {
   border-color: rgba(255, 255, 255, 0.5);
   box-shadow: 0 0 12px rgba(234, 179, 8, 0.45);
 }
+
+/* Estilo para o campo de tempo personalizado */
+#customTimeInput {
+  width: 80%;
+  padding: 8px;
+  border: 1px solid #fff;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+#customTimeInput:focus {
+  border-color: #ffcc00;
+}
+
+#setCustomTime {
+  padding: 8px 16px;
+  background-color: #ffcc00;
+  border-radius: 8px;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#setCustomTime:hover {
+  background-color: #ffbb33;
+}
