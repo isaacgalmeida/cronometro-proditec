@@ -166,9 +166,7 @@
     >
       <!-- Timer Card -->
       <div class="w-full max-w-2xl mb-8">
-        <div
-          class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl"
-        >
+        <div class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl">
           <!-- Timer Display -->
           <div class="text-center mb-8">
             <div
@@ -178,10 +176,7 @@
             >
               00:00
             </div>
-            <div
-              id="timer-status"
-              class="text-white/70 text-sm font-medium"
-            ></div>
+            <div id="timer-status" class="text-white/70 text-sm font-medium"></div>
 
             <!-- Aviso divertido DURANTE a execução -->
             <div id="run-fun" class="run-fun hidden" aria-live="polite">
@@ -196,9 +191,7 @@
           </div>
 
           <!-- Timer Controls -->
-          <div
-            class="timer-controls grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"
-          >
+          <div class="timer-controls grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <button
               data-action="adjust"
               data-min="-1"
@@ -270,8 +263,35 @@
         </div>
       </div>
 
+      <!-- Novo Card para Tempo Personalizado -->
+      <div class="w-full max-w-2xl mt-8 mb-8">
+        <div class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl">
+          <div class="text-center mb-8">
+            <h2 class="text-2xl font-semibold text-white">Definir Tempo Personalizado</h2>
+            <p class="text-white/70 text-sm mt-2">Digite o tempo desejado em minutos e inicie a contagem.</p>
+          </div>
+
+          <div class="w-full flex items-center justify-center gap-2 mb-6">
+            <input 
+              type="number" 
+              id="customTimeInput"
+              class="w-1/2 px-4 py-2 rounded-md text-white bg-slate-800 border border-white/20 focus:outline-none focus:ring-2 focus:ring-yellow-500" 
+              placeholder="Digite o tempo (min)"
+              min="1"
+              aria-label="Tempo personalizado"
+            />
+            <button
+              id="setCustomTime"
+              class="btn btn-primary px-3 py-2 rounded-md text-black bg-yellow-500 hover:bg-yellow-600"
+            >
+              Definir e Iniciar
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Music Card -->
-      <div class="w-full max-w-2xl">
+      <div class="w-full max-w-2xl mt-8 mb-8">
         <section
           class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 shadow-2xl"
           aria-label="Música de Fundo"

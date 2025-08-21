@@ -339,6 +339,18 @@ function initializeEventListeners() {
   if (stopMusicBtn) {
     stopMusicBtn.addEventListener('click', stopMusic);
   }
+
+  const setCustomTimeBtn = document.getElementById('setCustomTime');
+  if (setCustomTimeBtn) {
+    setCustomTimeBtn.addEventListener('click', () => {
+      const customTime = parseInt(document.getElementById('customTimeInput').value);
+      if (!isNaN(customTime) && customTime > 0) {
+        startTimer(customTime);  // Chama a função já existente para iniciar o timer
+      } else {
+        alert('Por favor, insira um valor válido para o tempo.');
+      }
+    });
+  }
 }
 
 function playYouTube(url) {
