@@ -23,6 +23,76 @@ let backgroundImages = [];
 // Mensagens personalizáveis (run-text)
 let runMessages = [];
 
+// -------------------- Music State Manager --------------------
+const musicState = {
+  isSelected: false,        // há música selecionada?
+  isPlaying: false,         // música está tocando?
+  currentUrl: '',           // URL da música atual
+  syncEnabled: true,        // sincronização ativa?
+  lastAction: 'manual'      // 'manual' | 'timer-sync'
+};
+
+function getMusicState() {
+  return { ...musicState };
+}
+
+function setMusicSelected(url) {
+  musicState.isSelected = !!url;
+  musicState.currentUrl = url || '';
+  console.log('Music selected:', { url, isSelected: musicState.isSelected });
+}
+
+function setMusicPlaying(playing) {
+  musicState.isPlaying = !!playing;
+  console.log('Music playing state:', musicState.isPlaying);
+}
+
+function isMusicAvailableForSync() {
+  return musicState.isSelected && musicState.currentUrl && musicState.syncEnabled;
+}
+
+function detectSelectedMusic() {
+  // Verifica música preset selecionada
+  const presetSelect = document.getElementById('presetMusic');
+  if (presetSelect && presetSelect.value) {
+    setMusicSelected(presetSelect.value);
+    return presetSelect.value;
+  }
+
+  // Verifica URL customizada válida
+  const customInput = document.getElementById('youtubeLink');
+  if (customInput && customInput.value.trim()) {
+    const url = customInput.value.trim();
+    if (isValidYouTubeUrl(url)) {
+      setMusicSelected(url);
+      return url;
+    }
+  }
+
+  // Nenhuma música válida encontrada
+  setMusicSelected('');
+  return '';
+}
+
+function isValidYouTubeUrl(url) {
+  if (!url) return false;
+  const videoId = extractVideoId(url);
+  return !!videoId;
+}
+
+function checkMusicAvailability() {
+  const selectedUrl = detectSelectedMusic();
+  const isAvailable = !!selectedUrl;
+
+  console.log('Music availability check:', {
+    selectedUrl,
+    isAvailable,
+    syncEnabled: musicState.syncEnabled
+  });
+
+  return isAvailable;
+}
+
 // Sistema de Cache
 const CACHE_KEYS = {
   TIMER_STATE: 'cronometro_timer_state',
@@ -155,6 +225,9 @@ function updateDisplay() {
     else runFun.classList.add('hidden');
   }
 
+  // Atualiza status de sincronização
+  updateSyncStatusDisplay();
+
   saveTimerState();
 }
 
@@ -176,8 +249,8 @@ function tick() {
     clearTimerCache();
     endTimestamp = null;
 
-    // pare a música quando o timer termina
-    stopMusic();
+    // Sincronizar música quando timer termina
+    syncMusicWithTimer('stop');
 
     // Mensagem no status
     const statusEl = document.getElementById('timer-status');
@@ -202,6 +275,10 @@ function startTimer(min) {
   updateButtonStates('running');
 
   document.body.classList.add('timer-running');
+
+  // Re-habilita sync e sincroniza música quando timer inicia
+  reEnableSync();
+  syncMusicWithTimer('start');
 }
 
 function adjustTimer(delta) {
@@ -229,6 +306,10 @@ function startCurrentTimer() {
     updateButtonStates('running');
     document.body.classList.add('timer-running');
     updateDisplay();
+
+    // Re-habilita sync e sincroniza música quando timer atual inicia
+    reEnableSync();
+    syncMusicWithTimer('start');
   } else {
     showNotification('⚠️ Tempo não definido', 'Defina um tempo primeiro usando os botões de minutos!');
   }
@@ -243,6 +324,9 @@ function pauseTimer() {
   updateButtonStates('paused');
   document.body.classList.remove('timer-running');
   updateDisplay();
+
+  // Sincronizar música quando timer pausa
+  syncMusicWithTimer('pause');
 }
 
 function resetTimer() {
@@ -257,6 +341,9 @@ function resetTimer() {
   updateButtonStates('stopped');
   document.body.classList.remove('timer-running');
   clearTimerCache();
+
+  // Sincronizar música quando timer reseta
+  syncMusicWithTimer('reset');
 }
 
 function updateButtonStates(state) {
@@ -294,6 +381,74 @@ function showNotification(title, message) {
   // sem alert() para não interromper a tela
 }
 
+// -------------------- YouTube Player API --------------------
+let youtubePlayer = null;
+let isYouTubeAPIReady = false;
+
+// Função chamada automaticamente quando a API do YouTube está pronta
+function onYouTubeIframeAPIReady() {
+  isYouTubeAPIReady = true;
+  console.log('YouTube API ready');
+}
+
+// Torna a função disponível globalmente para a API do YouTube
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+function createYouTubePlayer(videoId) {
+  return new Promise((resolve, reject) => {
+    try {
+      if (youtubePlayer) {
+        youtubePlayer.destroy();
+      }
+
+      youtubePlayer = new YT.Player('musicPlayer', {
+        height: '200',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          loop: 1,
+          playlist: videoId,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0
+        },
+        events: {
+          onReady: (event) => {
+            console.log('YouTube player ready');
+            resolve(event.target);
+          },
+          onStateChange: (event) => {
+            handleYouTubeStateChange(event);
+          },
+          onError: (event) => {
+            console.error('YouTube player error:', event.data);
+            reject(new Error(`YouTube player error: ${event.data}`));
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error creating YouTube player:', error);
+      reject(error);
+    }
+  });
+}
+
+function handleYouTubeStateChange(event) {
+  const state = event.data;
+
+  // YT.PlayerState constants: UNSTARTED (-1), ENDED (0), PLAYING (1), PAUSED (2), BUFFERING (3), CUED (5)
+  switch (state) {
+    case YT.PlayerState.PLAYING:
+      setMusicPlaying(true);
+      break;
+    case YT.PlayerState.PAUSED:
+    case YT.PlayerState.ENDED:
+      setMusicPlaying(false);
+      break;
+  }
+}
+
 // -------------------- Eventos / Música --------------------
 function initializeEventListeners() {
   const controls = document.querySelector('.timer-controls');
@@ -325,19 +480,40 @@ function initializeEventListeners() {
   if (presetMusic) {
     presetMusic.addEventListener('change', () => {
       const url = presetMusic.value;
-      if (url) playYouTube(url);
+      if (url) {
+        handleManualMusicControl();
+        playYouTube(url);
+      } else {
+        // Quando deseleciona música
+        setMusicSelected('');
+      }
     });
   }
 
   if (playCustom) {
     playCustom.addEventListener('click', () => {
       const url = document.getElementById('youtubeLink').value.trim();
-      if (url) playYouTube(url);
+      if (url) {
+        handleManualMusicControl();
+        playYouTube(url);
+      }
     });
   }
 
   if (stopMusicBtn) {
-    stopMusicBtn.addEventListener('click', stopMusic);
+    stopMusicBtn.addEventListener('click', () => {
+      handleManualMusicControl();
+      stopMusic();
+    });
+  }
+
+  // Detecta mudanças no campo de URL customizada
+  const youtubeInput = document.getElementById('youtubeLink');
+  if (youtubeInput) {
+    youtubeInput.addEventListener('input', () => {
+      // Detecta música selecionada quando usuário digita
+      setTimeout(detectSelectedMusic, 300); // debounce
+    });
   }
 
   const setCustomTimeBtn = document.getElementById('setCustomTime');
@@ -345,7 +521,8 @@ function initializeEventListeners() {
     setCustomTimeBtn.addEventListener('click', () => {
       const customTime = parseInt(document.getElementById('customTimeInput').value);
       if (!isNaN(customTime) && customTime > 0) {
-        startTimer(customTime);  // Chama a função já existente para iniciar o timer
+        // startTimer já inclui sincronização automática com música
+        startTimer(customTime);
       } else {
         alert('Por favor, insira um valor válido para o tempo.');
       }
@@ -353,23 +530,98 @@ function initializeEventListeners() {
   }
 }
 
-function playYouTube(url) {
-  const videoId = extractVideoId(url);
-  if (!videoId) {
-    alert('Link do YouTube inválido. Verifique o URL.');
-    return;
-  }
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=1&modestbranding=1&rel=0`;
+async function playYouTube(url) {
+  try {
+    const videoId = extractVideoId(url);
+    if (!videoId) {
+      const errorMsg = 'Link do YouTube inválido. Verifique o URL.';
+      if (musicState.lastAction === 'timer-sync') {
+        showSyncError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+      return;
+    }
 
-  if (musicPlayer) {
-    musicPlayer.style.width = '100%';
-    musicPlayer.style.height = '200px'; // altura maior para mostrar controles (incluindo volume)
-    musicPlayer.style.maxWidth = '600px';
-    musicPlayer.src = embedUrl;
-  }
+    // Verifica se a API do YouTube está disponível
+    if (!isYouTubeAPIReady || typeof YT === 'undefined') {
+      // Fallback para iframe simples se API não estiver disponível
+      playYouTubeFallback(url, videoId);
+      return;
+    }
 
-  const musicTitle = findMusicTitle(url);
-  showMusicStatus(`🎵 Reproduzindo: ${musicTitle}`);
+    // Mostra o player
+    const playerElement = document.getElementById('musicPlayer');
+    if (playerElement) {
+      playerElement.style.width = '100%';
+      playerElement.style.height = '200px';
+      playerElement.style.maxWidth = '600px';
+      playerElement.style.display = 'block';
+    }
+
+    // Cria ou atualiza o player do YouTube
+    if (youtubePlayer && youtubePlayer.loadVideoById) {
+      // Player já existe, apenas carrega novo vídeo
+      youtubePlayer.loadVideoById(videoId);
+    } else {
+      // Cria novo player
+      await createYouTubePlayer(videoId);
+    }
+
+    // Atualizar music state
+    setMusicSelected(url);
+    setMusicPlaying(true);
+
+    const musicTitle = findMusicTitle(url);
+    showMusicStatus(`🎵 Reproduzindo: ${musicTitle}`);
+  } catch (error) {
+    console.error('Error in playYouTube:', error);
+    // Fallback para iframe simples em caso de erro
+    const videoId = extractVideoId(url);
+    if (videoId) {
+      playYouTubeFallback(url, videoId);
+    } else {
+      showSyncError('Erro inesperado ao reproduzir música');
+    }
+  }
+}
+
+// Função fallback para usar iframe simples quando API não está disponível
+function playYouTubeFallback(url, videoId) {
+  try {
+    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=1&modestbranding=1&rel=0`;
+
+    const playerElement = document.getElementById('musicPlayer');
+    if (playerElement) {
+      // Cria iframe dentro do div
+      playerElement.innerHTML = `<iframe 
+        src="${embedUrl}" 
+        width="100%" 
+        height="200" 
+        frameborder="0" 
+        allow="autoplay; encrypted-media"
+        class="rounded-lg shadow-lg"
+        title="Reprodutor do YouTube">
+      </iframe>`;
+
+      playerElement.style.width = '100%';
+      playerElement.style.height = '200px';
+      playerElement.style.maxWidth = '600px';
+      playerElement.style.display = 'block';
+    }
+
+    // Atualizar music state
+    setMusicSelected(url);
+    setMusicPlaying(true);
+
+    const musicTitle = findMusicTitle(url);
+    showMusicStatus(`🎵 Reproduzindo: ${musicTitle} (modo compatibilidade)`);
+
+    console.log('Using fallback iframe method');
+  } catch (error) {
+    showSyncError('Erro ao reproduzir música');
+    console.error('Error in playYouTubeFallback:', error);
+  }
 }
 
 function findMusicTitle(url) {
@@ -377,28 +629,267 @@ function findMusicTitle(url) {
   return music ? music.title : 'Música personalizada';
 }
 
-function stopMusic() {
-  if (musicPlayer) {
-    musicPlayer.src = '';
-    musicPlayer.style.width = '0';
-    musicPlayer.style.height = '0';
+// Variável para armazenar URL pausada
+let pausedMusicUrl = '';
+
+function pauseMusic() {
+  try {
+    // Tenta usar a API do YouTube primeiro
+    if (youtubePlayer && youtubePlayer.pauseVideo && isYouTubeAPIReady) {
+      youtubePlayer.pauseVideo();
+      setMusicPlaying(false);
+      showMusicStatus('⏸️ Música pausada');
+      console.log('Music paused via YouTube API');
+      return;
+    }
+
+    // Fallback para método iframe (salva URL e remove src)
+    const playerElement = document.getElementById('musicPlayer');
+    if (playerElement && (playerElement.querySelector('iframe') || playerElement.src)) {
+      pausedMusicUrl = musicState.currentUrl;
+
+      if (playerElement.querySelector('iframe')) {
+        playerElement.innerHTML = '';
+      } else {
+        playerElement.src = '';
+      }
+
+      playerElement.style.width = '0';
+      playerElement.style.height = '0';
+      setMusicPlaying(false);
+      showMusicStatus('⏸️ Música pausada');
+      console.log('Music paused via fallback method');
+    }
+  } catch (error) {
+    console.error('Erro ao pausar música:', error);
   }
-  showMusicStatus('🔇 Música parada');
 }
 
-function showMusicStatus(message) {
+function resumeMusic() {
+  try {
+    // Tenta usar a API do YouTube primeiro
+    if (youtubePlayer && youtubePlayer.playVideo && isYouTubeAPIReady && musicState.isPlaying === false) {
+      youtubePlayer.playVideo();
+
+      // Mostra o player
+      const playerElement = document.getElementById('musicPlayer');
+      if (playerElement) {
+        playerElement.style.width = '100%';
+        playerElement.style.height = '200px';
+        playerElement.style.maxWidth = '600px';
+        playerElement.style.display = 'block';
+      }
+
+      setMusicPlaying(true);
+      showMusicStatus('▶️ Música retomada');
+      console.log('Music resumed via YouTube API');
+      return;
+    }
+
+    // Fallback para método iframe (recarrega a música)
+    if (pausedMusicUrl) {
+      playYouTube(pausedMusicUrl);
+      pausedMusicUrl = '';
+      showMusicStatus('▶️ Música retomada');
+      console.log('Music resumed via fallback method');
+    }
+  } catch (error) {
+    console.error('Erro ao retomar música:', error);
+  }
+}
+
+function stopMusic() {
+  try {
+    // Tenta usar a API do YouTube primeiro
+    if (youtubePlayer && youtubePlayer.stopVideo && isYouTubeAPIReady) {
+      youtubePlayer.stopVideo();
+      console.log('Music stopped via YouTube API');
+    }
+
+    // Limpa o player element
+    const playerElement = document.getElementById('musicPlayer');
+    if (playerElement) {
+      if (playerElement.querySelector('iframe')) {
+        playerElement.innerHTML = '';
+      } else {
+        playerElement.src = '';
+      }
+
+      playerElement.style.width = '0';
+      playerElement.style.height = '0';
+      playerElement.style.display = 'block'; // reset display
+    }
+
+    // Limpa URL pausada quando para completamente
+    pausedMusicUrl = '';
+    setMusicPlaying(false);
+    setMusicSelected(''); // limpa seleção quando para
+    showMusicStatus('🔇 Música parada');
+  } catch (error) {
+    console.error('Erro ao parar música:', error);
+  }
+}
+
+// -------------------- Sync Controller --------------------
+function syncMusicWithTimer(action) {
+  // Verifica se há música disponível antes de sincronizar
+  if (!checkMusicAvailability()) {
+    console.log('Music sync skipped - no music selected');
+    return;
+  }
+
+  if (!musicState.syncEnabled) {
+    console.log('Music sync skipped - sync disabled');
+    return;
+  }
+
+  try {
+    musicState.lastAction = 'timer-sync';
+
+    switch (action) {
+      case 'start':
+        handleTimerStart();
+        break;
+      case 'pause':
+        handleTimerPause();
+        break;
+      case 'stop':
+      case 'reset':
+        handleTimerStop();
+        break;
+      default:
+        console.warn('Unknown sync action:', action);
+    }
+  } catch (error) {
+    console.error('Erro na sincronização música-timer:', error);
+    // Timer continua normalmente mesmo se música falhar
+  }
+}
+
+function handleTimerStart() {
+  try {
+    // Se há música pausada, retoma
+    if (pausedMusicUrl) {
+      resumeMusic();
+      console.log('Music resumed via timer sync');
+    }
+    // Se há URL selecionada mas não está tocando, inicia
+    else if (musicState.currentUrl && !musicState.isPlaying) {
+      playYouTube(musicState.currentUrl);
+      console.log('Music started via timer sync');
+    }
+  } catch (error) {
+    showSyncError('Falha ao iniciar música');
+    console.error('Error in handleTimerStart:', error);
+  }
+}
+
+function handleTimerPause() {
+  try {
+    if (musicState.isPlaying) {
+      pauseMusic();
+      console.log('Music paused via timer sync');
+    }
+  } catch (error) {
+    showSyncError('Falha ao pausar música');
+    console.error('Error in handleTimerPause:', error);
+  }
+}
+
+function handleTimerStop() {
+  try {
+    if (musicState.isPlaying) {
+      // Para música completamente quando timer para/reseta
+      stopMusic();
+      console.log('Music stopped via timer sync');
+    }
+  } catch (error) {
+    showSyncError('Falha ao parar música');
+    console.error('Error in handleTimerStop:', error);
+  }
+}
+
+function handleManualMusicControl() {
+  // Desabilita sync temporariamente quando usuário controla música manualmente
+  musicState.lastAction = 'manual';
+  musicState.syncEnabled = false;
+  console.log('Manual music control detected - sync temporarily disabled');
+
+  // Re-habilita sync após um tempo ou na próxima ação do timer
+  setTimeout(() => {
+    if (musicState.lastAction === 'manual') {
+      musicState.syncEnabled = true;
+      console.log('Sync re-enabled after manual control timeout');
+    }
+  }, 5000); // 5 segundos
+}
+
+function reEnableSync() {
+  musicState.syncEnabled = true;
+  musicState.lastAction = 'timer-sync';
+  console.log('Sync re-enabled by timer action');
+}
+
+function showMusicStatus(message, persistent = false) {
   let statusEl = document.getElementById('musicStatus');
   if (!statusEl) {
     statusEl = document.createElement('div');
     statusEl.id = 'musicStatus';
-    statusEl.style.cssText = 'margin-top: 8px; font-size: 0.9rem; opacity: 0.8;';
+    statusEl.style.cssText = 'margin-top: 8px; font-size: 0.9rem; opacity: 0.8; text-align: center;';
     const container = document.querySelector('.music-player-container');
     if (container) container.appendChild(statusEl);
   }
-  statusEl.textContent = message;
-  setTimeout(() => {
-    if (statusEl.textContent === message) statusEl.textContent = '';
-  }, 3000);
+
+  // Adiciona informação de sincronização se aplicável
+  let fullMessage = message;
+  if (musicState.lastAction === 'timer-sync' && musicState.isPlaying) {
+    fullMessage += ' 🔄 (Sincronizado com timer)';
+  }
+
+  statusEl.textContent = fullMessage;
+
+  if (!persistent) {
+    setTimeout(() => {
+      if (statusEl.textContent === fullMessage) {
+        updateSyncStatusDisplay();
+      }
+    }, 3000);
+  }
+}
+
+function updateSyncStatusDisplay() {
+  const statusEl = document.getElementById('musicStatus');
+  if (!statusEl) return;
+
+  if (isRunning && isMusicAvailableForSync()) {
+    statusEl.textContent = '🔄 Timer e música sincronizados';
+    statusEl.style.color = '#10b981'; // verde
+  } else if (isRunning && !musicState.isSelected) {
+    statusEl.textContent = '⏱️ Apenas timer ativo';
+    statusEl.style.color = '#f59e0b'; // amarelo
+  } else if (musicState.isSelected && !isRunning) {
+    statusEl.textContent = '🎵 Música selecionada';
+    statusEl.style.color = '#3b82f6'; // azul
+  } else {
+    statusEl.textContent = '';
+    statusEl.style.color = '';
+  }
+}
+
+function showSyncError(error) {
+  showMusicStatus(`❌ Erro na música: ${error}. Timer continua normalmente.`, false);
+  console.error('Music sync error:', error);
+}
+
+// Função de debug para testar sincronização
+function debugMusicSync() {
+  console.log('=== Music Sync Debug Info ===');
+  console.log('Music State:', getMusicState());
+  console.log('Timer Running:', isRunning);
+  console.log('Time Left:', timeLeft);
+  console.log('Music Available for Sync:', isMusicAvailableForSync());
+  console.log('Selected Music URL:', detectSelectedMusic());
+  console.log('============================');
 }
 
 function extractVideoId(url) {
@@ -688,6 +1179,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadRunMessages() // carrega as mensagens
     ]);
 
+    // Inicializa detecção de música após carregar dados
+    setTimeout(() => {
+      detectSelectedMusic();
+      updateSyncStatusDisplay();
+    }, 100);
+
+    // Inicializa YouTube API se ainda não estiver pronta
+    if (typeof YT === 'undefined' || !isYouTubeAPIReady) {
+      console.log('Waiting for YouTube API to load...');
+      // A função onYouTubeIframeAPIReady será chamada automaticamente quando a API estiver pronta
+    }
+
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
@@ -730,6 +1233,12 @@ if (document.readyState !== 'loading') {
         loadBackgroundImages(),
         loadRunMessages() // também no fallback
       ]);
+
+      // Inicializa detecção de música após carregar dados (fallback)
+      setTimeout(() => {
+        detectSelectedMusic();
+        updateSyncStatusDisplay();
+      }, 100);
     } catch (error) {
       console.error('Erro na inicialização:', error);
       canPersist = true;

@@ -77,6 +77,9 @@
     <!-- Lucide Icons (usado pelo shadcn/ui) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
+    <!-- YouTube Player API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <!-- Configuração do Tailwind para shadcn/ui -->
     <script>
       tailwind.config = {
@@ -166,7 +169,9 @@
     >
       <!-- Timer Card -->
       <div class="w-full max-w-2xl mb-8">
-        <div class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl">
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl"
+        >
           <!-- Timer Display -->
           <div class="text-center mb-8">
             <div
@@ -176,7 +181,10 @@
             >
               00:00
             </div>
-            <div id="timer-status" class="text-white/70 text-sm font-medium"></div>
+            <div
+              id="timer-status"
+              class="text-white/70 text-sm font-medium"
+            ></div>
 
             <!-- Aviso divertido DURANTE a execução -->
             <div id="run-fun" class="run-fun hidden" aria-live="polite">
@@ -191,7 +199,9 @@
           </div>
 
           <!-- Timer Controls -->
-          <div class="timer-controls grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div
+            class="timer-controls grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"
+          >
             <button
               data-action="adjust"
               data-min="-1"
@@ -265,17 +275,23 @@
 
       <!-- Novo Card para Tempo Personalizado -->
       <div class="w-full max-w-2xl mt-8 mb-8">
-        <div class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl">
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-2xl"
+        >
           <div class="text-center mb-8">
-            <h2 class="text-2xl font-semibold text-white">Definir Tempo Personalizado</h2>
-            <p class="text-white/70 text-sm mt-2">Digite o tempo desejado em minutos e inicie a contagem.</p>
+            <h2 class="text-2xl font-semibold text-white">
+              Definir Tempo Personalizado
+            </h2>
+            <p class="text-white/70 text-sm mt-2">
+              Digite o tempo desejado em minutos e inicie a contagem.
+            </p>
           </div>
 
           <div class="w-full flex items-center justify-center gap-2 mb-6">
-            <input 
-              type="number" 
+            <input
+              type="number"
               id="customTimeInput"
-              class="w-1/2 px-4 py-2 rounded-md text-white bg-slate-800 border border-white/20 focus:outline-none focus:ring-2 focus:ring-yellow-500" 
+              class="w-1/2 px-4 py-2 rounded-md text-white bg-slate-800 border border-white/20 focus:outline-none focus:ring-2 focus:ring-yellow-500"
               placeholder="Digite o tempo (min)"
               min="1"
               aria-label="Tempo personalizado"
@@ -346,16 +362,11 @@
 
             <!-- Music Player -->
             <div class="music-player-container mt-4 flex justify-center">
-              <iframe
+              <div
                 id="musicPlayer"
-                width="0"
-                height="0"
-                frameborder="0"
-                allow="autoplay; encrypted-media"
                 class="rounded-lg shadow-lg"
-                loading="lazy"
-                title="Reprodutor do YouTube"
-              ></iframe>
+                style="width: 0; height: 0"
+              ></div>
             </div>
 
             <!-- Music Status -->
