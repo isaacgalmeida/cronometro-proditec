@@ -71,6 +71,14 @@
       "youtubeUrl": "https://www.youtube.com/watch?v=Hz0FxJrRngM",
       "category": "jazz",
       "duration": "1 hora"
+    },
+    {
+      "id": 10,
+      "title": "☕ Jazz Mix Manhã",
+      "description": "Jazz Mix Manhã",
+      "youtubeUrl": "https://www.youtube.com/watch?v=KY2yWJSSu_Q",
+      "category": "jazz",
+      "duration": "1 hora"
     }
   ]
 }
