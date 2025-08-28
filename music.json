@@ -79,6 +79,14 @@
       "youtubeUrl": "https://www.youtube.com/watch?v=KY2yWJSSu_Q",
       "category": "jazz",
       "duration": "1 hora"
+    },
+    {
+      "id": 11,
+      "title": "☕ Relaxing music",
+      "description": "Relaxing music",
+      "youtubeUrl": "https://www.youtube.com/watch?v=qCiATfJ8KOI",
+      "category": "jazz",
+      "duration": "1 hora"
     }
   ]
 }
