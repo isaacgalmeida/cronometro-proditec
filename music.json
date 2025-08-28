@@ -63,6 +63,14 @@
       "youtubeUrl": "https://www.youtube.com/watch?v=DtYrxTp_1fA",
       "category": "lofi",
       "duration": "1 hora"
+    },
+    {
+      "id": 9,
+      "title": "☕ Jazz e Bossa Nova Music",
+      "description": "Jazz e Bossa Nova Music",
+      "youtubeUrl": "https://www.youtube.com/watch?v=Hz0FxJrRngM",
+      "category": "jazz",
+      "duration": "1 hora"
     }
   ]
 }
